@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+  # SPDX-License-Identifier: Apache-2.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "observability-tenant-controller.fullname" . }}
+  labels:
+    {{- include "observability-tenant-controller.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "observability-tenant-controller.selectorLabels" . | nindent 6 }}
+  ports:
+    - port: {{ include "observability-tenant-controller.ports.prometheus" . }}
+      protocol: TCP
+      targetPort: {{ include "observability-tenant-controller.ports.prometheus" . }}
+      name: metrics
+    - port: {{ include "observability-tenant-controller.ports.grpc" . }}
+      protocol: TCP
+      name: grpc
+  type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "observability-tenant-controller.fullname" . }}
+  labels:
+    {{- include "observability-tenant-controller.labels" . | nindent 4 }}
+spec:
+  endpoints:
+    - port: metrics
+      scheme: http
+      path: /metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchExpressions:
+      - key: prometheus.io/service-monitor
+        operator: NotIn
+        values:
+          - "false"
+    matchLabels:
+      {{- include "observability-tenant-controller.labels" . | nindent 6 }}

@@ -1,0 +1,29 @@
+// SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package projectstream;
+option go_package = "proto/";
+
+service ProjectService {
+  rpc StreamProjectUpdates(EmptyRequest) returns (stream ProjectUpdate);
+}
+
+message EmptyRequest {
+}
+
+message ProjectData {
+  string project_name = 1;
+  string org_name = 2;
+  string status = 3;
+}
+
+message ProjectUpdate {
+  repeated ProjectEntry projects = 1;
+}
+
+message ProjectEntry {
+  string key = 1;
+  ProjectData data = 2;
+}

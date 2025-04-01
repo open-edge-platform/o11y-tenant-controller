@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+endpoints:
+  alertingmonitor: "http://localhost:8080"
+  sre: "http://localhost:8080"
+  mimir:
+    ingester: "http://localhost:8080"
+    compactor: "http://localhost:8080"
+    pollingRate: 20s
+    deleteVerifyMode: loose
+  loki:
+    write: "http://localhost:3100"
+    backend: "http://localhost:3100"
+    pollingRate: 20s
+    maxPollingRate: 1m
+    deleteVerifyMode: loose
+
+controller:
+  channel:
+    maxInflightRequests: 20
+  createDeleteWatcherTimeout: 10m
+
+job:
+  manager:
+    deletion:
+      rate: "1m"
+  backoff:
+    initial: "10s"
+    max: "10m"
+    timeMultiplier: 1.6
+  timeout: "30m"
+  sre:
+    enabled: true

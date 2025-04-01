@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+{{ include "checks" . }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "observability-tenant-controller-config"
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    {{- tpl (.Files.Get "files/config/config.yaml") . | nindent 4 }}

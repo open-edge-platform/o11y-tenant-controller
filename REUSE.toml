@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+
+[[annotations]]
+path = [
+  ".tool-versions",
+  "VERSION",
+  "deployments/observability-tenant-controller/templates/**.tpl",
+  "go.mod",
+  "go.sum",
+  ".cache/**",
+  "ci/**"
+]
+SPDX-FileCopyrightText = "2025 Intel Corporation"
+SPDX-License-Identifier = "Apache-2.0"

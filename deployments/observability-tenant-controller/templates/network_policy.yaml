@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: observability-tenant-controller-allowed-traffic
+  labels:
+    {{- include "observability-tenant-controller.labels" . | nindent 4 }}
+spec:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.namespaces.edgenode }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: opentelemetry-collector
+      ports:
+        - port: {{ include "observability-tenant-controller.ports.prometheus" . }}
+          protocol: TCP
+
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.namespaces.platform }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - port: {{ include "observability-tenant-controller.ports.prometheus" . }}
+          protocol: TCP
+
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.namespaces.edgenode }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: grafana
+      ports:
+        - port: {{ include "observability-tenant-controller.ports.grpc" . }}
+          protocol: TCP
+
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.namespaces.gateway }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: auth-service
+      ports:
+        - port: {{ include "observability-tenant-controller.ports.grpc" . }}
+          protocol: TCP
+
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.namespaces.platform }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: grafana
+      ports:
+        - port: {{ include "observability-tenant-controller.ports.grpc" . }}
+          protocol: TCP
+
+  podSelector:
+    matchLabels:
+      {{- include "observability-tenant-controller.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress

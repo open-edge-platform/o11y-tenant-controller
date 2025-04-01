@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+endpoints:
+  alertingmonitor: alerting-monitor-management.{{ .Values.namespaces.edgenode }}.svc.cluster.local:51001
+  sre: sre-config-reloader-service.{{ .Values.namespaces.sre }}.svc.cluster.local:50051
+  mimir:
+    ingester: "http://edgenode-observability-mimir-ingester.{{ .Values.namespaces.edgenode }}.svc.cluster.local:8080"
+    compactor: "http://edgenode-observability-mimir-compactor.{{ .Values.namespaces.edgenode }}.svc.cluster.local:8080"
+    pollingRate: 20s
+    # Verify mode can be strict or loose
+    deleteVerifyMode: {{ .Values.loki.deleteVerifyMode }}
+  loki:
+    write: "http://loki-write.{{ .Values.namespaces.edgenode }}.svc.cluster.local:3100"
+    backend: "http://loki-backend.{{ .Values.namespaces.edgenode }}.svc.cluster.local:3100"
+    pollingRate: 20s
+    maxPollingRate: 1m
+    # Verify mode can be "strict" or "loose"
+    deleteVerifyMode: {{ .Values.mimir.deleteVerifyMode }}
+
+controller:
+  channel:
+    maxInflightRequests: 1000
+  createDeleteWatcherTimeout: 10m
+
+job:
+  manager:
+    deletion:
+      rate: "1m"
+  backoff:
+    initial: "3s"
+    max: "10m"
+    timeMultiplier: 1.6
+  timeout: "30m"
+  sre:
+    enabled: {{ .Values.sre.enabled }}

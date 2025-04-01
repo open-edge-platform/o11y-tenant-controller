@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+image:
+  registry: registry-rs.edgeorchestration.intel.com/edge-orch
+  repository: o11y/observability-tenant-controller
+  pullPolicy: IfNotPresent
+
+configmap:
+  mountPath: "/etc/config"
+
+sre:
+  enabled: true
+
+loki:
+  # Verify mode can be "strict" or "loose"
+  deleteVerifyMode: loose
+mimir:
+  # Verify mode can be "strict" or "loose"
+  deleteVerifyMode: loose
+
+namespaces:
+  # Where edgenode observability is
+  edgenode: orch-infra
+  # Where platform observability is
+  platform: orch-platform
+  # Where auth-service is
+  gateway: orch-gateway
+  # Where sre exporter is
+  sre: orch-sre

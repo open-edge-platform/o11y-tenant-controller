@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# yamllint config
+
+extends: default
+
+rules:
+  empty-lines:
+    max-end: 1
+  line-length:
+    max: 160
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  document-start: disable
+
+ignore:
+  - ci/
+  - trivy/
+  - .github/
+  - .git/
+  - .golangci.yml
+  - vendor
+  # ignore files with Helm template syntax (yamllint can't parse them) and deliberately malformed
+  - deployments/observability-tenant-controller/templates/deployment.yaml
+  - deployments/observability-tenant-controller/templates/service.yaml
+  - deployments/observability-tenant-controller/templates/network_policy.yaml
+  - internal/config/testdata/test_config_malformed.yaml
