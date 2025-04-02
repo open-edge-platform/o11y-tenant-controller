@@ -5,8 +5,8 @@ go 1.24.0
 require (
 	github.com/onsi/ginkgo/v2 v2.23.3
 	github.com/onsi/gomega v1.36.3
-	github.com/open-edge-platform/o11y-alerting-monitor v1.6.27
-	github.com/open-edge-platform/o11y-sre-exporter v0.8.19
+	github.com/open-edge-platform/o11y-alerting-monitor v1.7.0
+	github.com/open-edge-platform/o11y-sre-exporter v0.9.0
 	github.com/open-edge-platform/orch-utils/tenancy-datamodel v0.0.0-20250312121040-f4b11832045f
 	github.com/prometheus/client_golang v1.21.1
 	github.com/stretchr/testify v1.10.0
