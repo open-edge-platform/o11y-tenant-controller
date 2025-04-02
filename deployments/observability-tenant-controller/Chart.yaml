@@ -5,8 +5,8 @@ apiVersion: v2
 name: observability-tenant-controller
 description: A Helm chart for Observability Tenant Controller
 type: application
-version: 0.5.44
-appVersion: 0.5.44
+version: 0.6.0
+appVersion: 0.6.0
 annotations:
-  revision: 7a42ecbaa84c9b872b1c0c20821a76876b47a543
-  created: "2025-04-01T05:44:01Z"
+  revision: 1b714f2c7ab79435841397c2399a29ba71be67ba
+  created: "2025-04-02T06:49:03Z"
