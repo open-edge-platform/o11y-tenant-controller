@@ -16,7 +16,7 @@ jobs:
   pre-merge:
     permissions:
       contents: write
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@8921b7fbd052a769507634dba16f272a127cd6fd
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@0.1.0
     with:
       run_reuse_check: true
       run_version_check: true
