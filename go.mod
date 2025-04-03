@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.23.3
-	github.com/onsi/gomega v1.36.3
+	github.com/onsi/gomega v1.37.0
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.0
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.0
 	github.com/open-edge-platform/orch-utils/tenancy-datamodel v0.0.0-20250401180309-9c2571c45857
