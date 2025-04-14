@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+SHELL := bash -eu -o pipefail
+
 PROJECT_NAME                      := observability-tenant-controller
 
 ## Labels to add Docker/Helm/Service CI meta-data.
@@ -106,6 +108,22 @@ helm-push:
 	aws ecr create-repository --region us-west-2 --repository-name $(REGISTRY_NO_AUTH)/$(REPOSITORY)/charts/$(CHART_NAME) || true
 	helm push $(CHART_BUILD_DIR)$(CHART_NAME)*.tgz oci://$(REPOSITORY_NO_AUTH)/charts
 	@echo "---END MAKEFILE HELM-PUSH---"
+
+docker-list: ## Print name of docker container image
+	@echo "images:"
+	@echo "  $(DOCKER_IMAGE_NAME):"
+	@echo "    name: '$(REPOSITORY_NO_AUTH)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)'"
+	@echo "    version: '$(DOCKER_IMAGE_TAG)'"
+	@echo "    gitTagPrefix: 'v'"
+	@echo "    buildTarget: 'docker-build'"
+
+helm-list: ## List helm charts, tag format, and versions in YAML format
+	@echo "charts:" ;\
+  echo "  $(CHART_NAME):" ;\
+  echo -n "    "; grep "^version" "${CHART_PATH}/Chart.yaml"  ;\
+  echo "    gitTagPrefix: 'v'" ;\
+  echo "    outDir: '${CHART_BUILD_DIR}'" ;\
+
 ## CI Mandatory Targets end
 
 ## Helper Targets start
