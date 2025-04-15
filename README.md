@@ -20,7 +20,7 @@ SPDX-License-Identifier: Apache-2.0
 [Contact us]: https://github.com/open-edge-platform
 
 [Apache 2.0 License]: LICENSES/Apache-2.0.txt
-[Contributor's Guide]: CONTRIBUTING.md
+[Contributor's Guide]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
 
 ## Overview
 
