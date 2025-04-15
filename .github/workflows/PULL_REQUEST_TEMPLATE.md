@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+SPDX-License-Identifier: Apache-2.0
+-->
 ### Description
 
 Please include a summary of the changes and the related issue. List any dependencies that are required for this change.
