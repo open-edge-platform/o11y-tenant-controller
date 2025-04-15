@@ -127,7 +127,7 @@ make proto
 
 ## Develop
 
-It is recommended to develop the `observability-tenent-controller` application by deploying and testing it as a part of the Edge Orchestrator cluster.
+It is recommended to develop the `observability-tenant-controller` application by deploying and testing it as a part of the Edge Orchestrator cluster.
 
 The code of this project is maintained and released in CI using the `VERSION` file.
 In addition, the chart is versioned with the same tag as the `VERSION` file.
