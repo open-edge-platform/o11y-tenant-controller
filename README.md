@@ -20,7 +20,7 @@ SPDX-License-Identifier: Apache-2.0
 [Contact us]: https://github.com/open-edge-platform
 
 [Apache 2.0 License]: LICENSES/Apache-2.0.txt
-[Contributor's Guide]: CONTRIBUTING.md
+[Contributor's Guide]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
 
 ## Overview
 
@@ -125,9 +125,9 @@ To generate code from protobuf definitions, use:
 make proto
 ```
 
-## Contribute
+## Develop
 
-To learn how to contribute to the project, see the [Contributor's Guide].
+It is recommended to develop the `observability-tenant-controller` application by deploying and testing it as a part of the Edge Orchestrator cluster.
 
 The code of this project is maintained and released in CI using the `VERSION` file.
 In addition, the chart is versioned with the same tag as the `VERSION` file.
@@ -140,6 +140,10 @@ To bump the version, increment the version in the `VERSION` file and run the fol
 ```sh
 make helm-build
 ```
+
+## Contribute
+
+To learn how to contribute to the project, see the [Contributor's Guide].
 
 ## Community and Support
 

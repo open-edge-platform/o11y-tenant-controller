@@ -6,7 +6,7 @@ FROM golang:1.24.2-alpine@sha256:7772cb5322baa875edd74705556d08f0eeca7b9c4b53677
 
 WORKDIR /workspace
 
-RUN apk add --upgrade --no-cache make=~4
+RUN apk add --upgrade --no-cache make=~4 bash=~5
 
 COPY . .
 
