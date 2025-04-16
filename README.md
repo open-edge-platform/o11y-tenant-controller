@@ -3,6 +3,8 @@ SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 SPDX-License-Identifier: Apache-2.0
 -->
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 # Edge Orchestrator Observability Tenant Controller
 
 [alerting-monitor]: https://github.com/open-edge-platform/o11y-alerting-monitor
@@ -14,9 +16,9 @@ SPDX-License-Identifier: Apache-2.0
 [sre-exporter]: https://github.com/open-edge-platform/o11y-sre-exporter
 [tenancy-datamodel]: https://github.com/open-edge-platform/orch-utils/tree/main/tenancy-datamodel
 
-[Documentation]: https://github.com/open-edge-platform/orch-docs
+[Documentation]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/observability/arch/index.html
 [Edge Orchestrator Community]: https://github.com/open-edge-platform
-[Troubleshooting]: https://github.com/open-edge-platform/orch-docs
+[Troubleshooting]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/troubleshooting/index.html
 [Contact us]: https://github.com/open-edge-platform
 
 [Apache 2.0 License]: LICENSES/Apache-2.0.txt
