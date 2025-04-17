@@ -15,10 +15,26 @@ permissions: {}
 jobs:
   post-merge:
     permissions:
+      # it combines `read-all` with `contents: write` - all of them needed by `post-merge.yml` workflow
       contents: write
+      actions: read
+      attestations: read
+      checks: read
+      deployments: read
+      id-token: write
+      issues: read
+      models: read
+      discussions: read
+      packages: read
+      pages: read
+      pull-requests: read
+      security-events: read
+      statuses: read
     uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@0.1.2
     with:
       run_version_check: true
+      run_version_tag: true
+      bootstrap_tools: "go,gotools,nodejs,python,golang-lint,helm,shellcheck,hadolint,yq,jq,protolint"
       run_security_scans: true
       run_dep_version_check: false
       cache_go: true
@@ -27,12 +43,11 @@ jobs:
       # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#restrictions-for-accessing-a-cache
       run_lint: true
       run_test: true
+      remove_cache_go: true
       run_docker_build: true
       run_docker_push: true
       run_helm_build: true
       run_helm_push: true
       run_artifact: false
-      run_version_tag: true
       run_version_dev: false
-      bootstrap_tools: "go,gotools,nodejs,python,golang-lint,helm,shellcheck,hadolint,yq,jq,protolint"
     secrets: inherit

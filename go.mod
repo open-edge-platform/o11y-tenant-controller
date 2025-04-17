@@ -9,7 +9,7 @@ require (
 	github.com/onsi/gomega v1.37.0
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.0
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.0
-	github.com/open-edge-platform/orch-utils/tenancy-datamodel v0.2.0
+	github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.1.4
 	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.13.0
