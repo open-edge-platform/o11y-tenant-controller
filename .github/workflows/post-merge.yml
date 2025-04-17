@@ -28,6 +28,7 @@ jobs:
       packages: read
       pages: read
       pull-requests: read
+      repository-projects: read
       security-events: read
       statuses: read
     uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@0.1.2
