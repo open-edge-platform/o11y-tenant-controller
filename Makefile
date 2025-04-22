@@ -11,7 +11,6 @@ LABEL_CREATED                     ?= $(shell date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 VERSION                           ?= $(shell cat VERSION | tr -d '[:space:]')
 BUILD_DIR                         ?= ./build
-VENDOR_DIR                        ?= ./vendor
 
 ## CHART_NAME is specified in Chart.yaml
 CHART_NAME                        ?= $(PROJECT_NAME)
@@ -40,8 +39,8 @@ DOCKER_IMAGE_TAG                  ?= $(VERSION)
 TEST_JOB_NAME                     ?= observability-tenant-controller-test
 DOCKER_FILES_TO_LINT              := $(shell find . -type f -name 'Dockerfile*' -print )
 
-GOCMD         := GOPRIVATE="github.com/open-edge-platform" CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go
-GOCMD_TEST    := GOPRIVATE="github.com/open-edge-platform" CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go
+GOCMD         := CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go
+GOCMD_TEST    := CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go
 GOEXTRAFLAGS  :=-trimpath -gcflags="all=-spectre=all -N -l" -asmflags="all=-spectre=all" -ldflags="all=-s -w -X main.version=$(shell cat ./VERSION) -X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
 
 .DEFAULT_GOAL := help
@@ -71,7 +70,6 @@ test:
 docker-build:
 	@# Help: Builds docker image
 	@echo "---MAKEFILE DOCKER-BUILD---"
-	go mod vendor
 	docker rmi $(REPOSITORY_NO_AUTH)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) --force
 	docker build -f Dockerfile \
 		-t $(REPOSITORY_NO_AUTH)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) \
@@ -127,14 +125,13 @@ helm-list: ## List helm charts, tag format, and versions in YAML format
 ## CI Mandatory Targets end
 
 ## Helper Targets start
-all: clean vendor build lint test
-	@# Help: Runs clean, vendor, build, lint, test targets
+all: clean build lint test
+	@# Help: Runs clean, build, lint, test targets
 
 clean:
-	@# Help: Deletes build and vendor directories
+	@# Help: Deletes build directory
 	@echo "---MAKEFILE CLEAN---"
 	rm -rf $(BUILD_DIR)
-	rm -rf $(VENDOR_DIR)
 	@echo "---END MAKEFILE CLEAN---"
 
 helm-clean:
@@ -142,12 +139,6 @@ helm-clean:
 	@echo "---MAKEFILE HELM-CLEAN---"
 	rm -rf $(CHART_BUILD_DIR)
 	@echo "---END MAKEFILE HELM-CLEAN---"
-
-vendor:
-	@# Help: Runs go mod vendor command
-	@echo "---MAKEFILE VENDOR---"
-	$(GOCMD) mod vendor
-	@echo "---END MAKEFILE VENDOR---"
 
 lint-go:
 	@# Help: Runs linters for golang source code files
@@ -158,7 +149,7 @@ lint-go:
 lint-markdown:
 	@# Help: Runs linter for markdown files
 	@echo "---MAKEFILE LINT-MARKDOWN---"
-	markdownlint-cli2 '**/*.md' "!.github" "!vendor" "!**/ci/*"
+	markdownlint-cli2 '**/*.md' "!.github" "!**/ci/*"
 	@echo "---END MAKEFILE LINT-MARKDOWN---"
 
 lint-yaml:
