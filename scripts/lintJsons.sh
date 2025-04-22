@@ -4,7 +4,6 @@
 
 PATHS_TO_EXCLUDE=$(cat <<EOF
 ./artifacts/*
-./vendor/*
 ./ci/
 ./.cache/
 EOF

@@ -24,7 +24,6 @@ ignore:
   - .github/
   - .git/
   - .golangci.yml
-  - vendor
   # ignore files with Helm template syntax (yamllint can't parse them) and deliberately malformed
   - deployments/observability-tenant-controller/templates/deployment.yaml
   - deployments/observability-tenant-controller/templates/service.yaml
