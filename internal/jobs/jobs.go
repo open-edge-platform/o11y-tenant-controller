@@ -104,6 +104,9 @@ func (jm *JobManager) Start(ticker *time.Ticker) {
 			case <-ticker.C:
 				for k, job := range jm.jobList {
 					status := jobStatus(job.status.Load())
+					//nolint:staticcheck // Linter suggests: "QF1003: could use tagged switch on status"
+					// If this suggestion were to be applied, then exhaustive linter would be unhappy
+					// that there are missing cases in switch of iota type jobs.jobStatus
 					if status == tenantDeleted {
 						removeProjectMetadata(job.project)
 						delete(jm.jobList, k)
@@ -126,13 +129,13 @@ func (jm *JobManager) Stop() {
 
 func (jm *JobManager) startJob(ctx context.Context, project *nexus.RuntimeprojectRuntimeProject, action controller.Action) {
 	setProjectMetadata(project, action)
-	job, exists := jm.jobList[project.ObjectMeta.UID]
+	job, exists := jm.jobList[project.UID]
 	if exists {
 		job.cancel()
 		job.run(ctx, action)
 	} else {
 		job = newJob(project, jm.jobCfg, jm.endpointsCfg, jm.amClient, jm.sreClient)
-		jm.jobList[project.ObjectMeta.UID] = job
+		jm.jobList[project.UID] = job
 		job.run(ctx, action)
 	}
 }
@@ -185,7 +188,7 @@ func (j *job) cancel() {
 
 func (j *job) manageTenant(parentCtx context.Context, tenantAction func(context.Context) error, action controller.Action) {
 	cnt := 0
-	id := j.project.ObjectMeta.UID
+	id := j.project.UID
 	ctx := context.WithValue(parentCtx, util.ContextKeyTenantID, string(id))
 
 	for {
@@ -223,7 +226,7 @@ func (j *job) initializeTenant(parentCtx context.Context) error {
 	timedOutCtx, cancel := context.WithTimeout(parentCtx, j.jobCfg.Timeout)
 	defer cancel()
 	err := watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Creating tenant %q", j.project.ObjectMeta.UID))
+		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Creating tenant %q", j.project.UID))
 	if err != nil {
 		return err
 	}
@@ -240,14 +243,14 @@ func (j *job) initializeTenant(parentCtx context.Context) error {
 	}
 
 	return watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationIdle, fmt.Sprintf("Tenant %q created", j.project.ObjectMeta.UID))
+		projectwatchv1.StatusIndicationIdle, fmt.Sprintf("Tenant %q created", j.project.UID))
 }
 
 func (j *job) cleanupTenant(parentCtx context.Context) error {
 	timedOutCtx, cancel := context.WithTimeout(parentCtx, j.jobCfg.Timeout)
 	defer cancel()
 	err := watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Deleting tenant %q", j.project.ObjectMeta.UID))
+		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Deleting tenant %q", j.project.UID))
 	if err != nil {
 		return err
 	}
@@ -318,9 +321,9 @@ func removeProjectMetadataByID(projectID string) {
 
 func extractLabelsFrom(project *nexus.RuntimeprojectRuntimeProject) (projectID, projectName, orgName string) {
 	orgName = ""
-	if project.ObjectMeta.GetLabels() != nil {
-		orgName = project.ObjectMeta.GetLabels()[util.OrgNameLabel]
+	if project.GetLabels() != nil {
+		orgName = project.GetLabels()[util.OrgNameLabel]
 	}
 
-	return string(project.ObjectMeta.UID), project.DisplayName(), orgName
+	return string(project.UID), project.DisplayName(), orgName
 }

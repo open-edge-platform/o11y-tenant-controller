@@ -1,6 +1,6 @@
 ginkgo 2.22.2
-golang 1.24.0
-golangci-lint 1.64.5
+golang 1.24.2
+golangci-lint 2.1.2
 hadolint 2.12.0
 helm 3.17.0
 jq 1.7.1
