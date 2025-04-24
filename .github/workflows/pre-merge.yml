@@ -20,7 +20,7 @@ jobs:
     with:
       run_reuse_check: true
       run_version_check: true
-      bootstrap_tools: "go,gotools,nodejs,python,golang-lint2,helm,shellcheck,hadolint,yq,jq,protolint"
+      bootstrap_tools: "go,gotools,nodejs,python,golangci-lint2,helm,shellcheck,hadolint,yq,jq,protolint"
       run_dep_version_check: false
       cache_go: true
       run_build: true
