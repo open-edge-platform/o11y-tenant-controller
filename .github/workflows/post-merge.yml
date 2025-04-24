@@ -31,12 +31,11 @@ jobs:
       repository-projects: read
       security-events: read
       statuses: read
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@0.1.5
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@0.1.6
     with:
       run_version_check: true
       run_version_tag: true
-      bootstrap_tools: "go,gotools,nodejs,python,golang-lint,helm,shellcheck,hadolint,yq,jq,protolint"
-      run_security_scans: true
+      bootstrap_tools: "go,gotools,nodejs,python,golangci-lint2,helm,shellcheck,hadolint,yq,jq,protolint"
       run_dep_version_check: false
       cache_go: true
       run_build: true
