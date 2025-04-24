@@ -35,7 +35,7 @@ jobs:
     with:
       run_version_check: true
       run_version_tag: true
-      bootstrap_tools: "go,gotools,nodejs,python,golang-lint,helm,shellcheck,hadolint,yq,jq,protolint"
+      bootstrap_tools: "go,gotools,nodejs,python,golang-lint2,helm,shellcheck,hadolint,yq,jq,protolint"
       run_security_scans: true
       run_dep_version_check: false
       cache_go: true

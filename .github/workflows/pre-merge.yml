@@ -20,7 +20,7 @@ jobs:
     with:
       run_reuse_check: true
       run_version_check: true
-      bootstrap_tools: "go,gotools,nodejs,python,golang-lint,helm,shellcheck,hadolint,yq,jq,protolint"
+      bootstrap_tools: "go,gotools,nodejs,python,golang-lint2,helm,shellcheck,hadolint,yq,jq,protolint"
       run_dep_version_check: false
       cache_go: true
       run_build: true
@@ -34,4 +34,5 @@ jobs:
       artifacts_path: |
         ./build/coverage.out
         ./build/coverage.xml
+      orch_ci_repo_ref: golangci-lint-v2 #TODO: just for testing, remove later
     secrets: inherit
