@@ -176,7 +176,7 @@ func (tc *TenantController) deleteProjectWatcher() error {
 }
 
 func (tc *TenantController) addHandler(project *nexus.RuntimeprojectRuntimeProject) {
-	log.Printf("Project %q added", project.ObjectMeta.UID)
+	log.Printf("Project %q added", project.UID)
 	pd := projects.ProjectData{
 		ProjectName: project.DisplayName(),
 		OrgID:       project.GetLabels()[util.OrgNameLabel],
@@ -191,13 +191,13 @@ func (tc *TenantController) addHandler(project *nexus.RuntimeprojectRuntimeProje
 	}
 
 	tc.grpcServer.Mu.Lock()
-	tc.grpcServer.Projects[string(project.ObjectMeta.UID)] = pd
+	tc.grpcServer.Projects[string(project.UID)] = pd
 	tc.grpcServer.Mu.Unlock()
 	tc.grpcServer.BroadcastUpdate()
 }
 
 func (tc *TenantController) updateHandler(_, project *nexus.RuntimeprojectRuntimeProject) {
-	log.Printf("Project %q updated", project.ObjectMeta.UID)
+	log.Printf("Project %q updated", project.UID)
 	pd := projects.ProjectData{
 		ProjectName: project.DisplayName(),
 		OrgID:       project.GetLabels()[util.OrgNameLabel],
@@ -212,7 +212,7 @@ func (tc *TenantController) updateHandler(_, project *nexus.RuntimeprojectRuntim
 	}
 
 	tc.grpcServer.Mu.Lock()
-	tc.grpcServer.Projects[string(project.ObjectMeta.UID)] = pd
+	tc.grpcServer.Projects[string(project.UID)] = pd
 	tc.grpcServer.Mu.Unlock()
 	tc.grpcServer.BroadcastUpdate()
 }

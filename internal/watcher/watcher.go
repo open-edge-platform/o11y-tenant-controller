@@ -33,12 +33,12 @@ func CreateUpdateWatcher(ctx context.Context, project *nexus.RuntimeprojectRunti
 
 	watcher, err := project.GetActiveWatchers(ctx, util.AppName)
 	if err != nil && !nexus.IsChildNotFound(err) && !nexus.IsNotFound(err) {
-		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.ObjectMeta.UID, err)
+		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.UID, err)
 	}
 	if nexus.IsChildNotFound(err) || nexus.IsNotFound(err) {
 		return createWatcher(ctx, project, status, message)
 	}
-	return updateWatcher(ctx, watcher, status, string(project.ObjectMeta.UID), message)
+	return updateWatcher(ctx, watcher, status, string(project.UID), message)
 }
 
 func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProject) error {
@@ -49,11 +49,11 @@ func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 	// Get watcher to check tenantID in message
 	watcher, err := project.GetActiveWatchers(ctx, util.AppName)
 	if err != nil && !nexus.IsChildNotFound(err) && !nexus.IsNotFound(err) {
-		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.ObjectMeta.UID, err)
+		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.UID, err)
 	}
 
 	if nexus.IsNotFound(err) || nexus.IsChildNotFound(err) {
-		log.Printf("Watcher already deleted for tenantID %q", project.ObjectMeta.UID)
+		log.Printf("Watcher already deleted for tenantID %q", project.UID)
 		return nil
 	}
 
@@ -61,16 +61,16 @@ func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 		return err
 	}
 
-	log.Printf("Deleting watcher for tenantID %q", project.ObjectMeta.UID)
+	log.Printf("Deleting watcher for tenantID %q", project.UID)
 	err = project.DeleteActiveWatchers(ctx, util.AppName)
 
 	if nexus.IsNotFound(err) || nexus.IsChildNotFound(err) {
-		log.Printf("Watcher already deleted for tenantID %q", project.ObjectMeta.UID)
+		log.Printf("Watcher already deleted for tenantID %q", project.UID)
 	} else if err != nil {
-		return fmt.Errorf("failed to delete watcher for tenantID %q: %w", project.ObjectMeta.UID, err)
+		return fmt.Errorf("failed to delete watcher for tenantID %q: %w", project.UID, err)
 	}
 
-	log.Printf("Watcher for tenantID %q deleted", project.ObjectMeta.UID)
+	log.Printf("Watcher for tenantID %q deleted", project.UID)
 	return nil
 }
 
@@ -104,7 +104,7 @@ func createWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 		return errors.New("failed to create watcher: project cannot be nil")
 	}
 
-	log.Printf("Creating watcher for tenantID %q", project.ObjectMeta.UID)
+	log.Printf("Creating watcher for tenantID %q", project.UID)
 	_, err := project.AddActiveWatchers(ctx, &projectwatchv1.ProjectActiveWatcher{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: util.AppName,
@@ -117,10 +117,10 @@ func createWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to create watcher for tenantID %q: %w", project.ObjectMeta.UID, err)
+		return fmt.Errorf("failed to create watcher for tenantID %q: %w", project.UID, err)
 	}
 
-	log.Printf("Watcher for tenantID %q created", project.ObjectMeta.UID)
+	log.Printf("Watcher for tenantID %q created", project.UID)
 	return nil
 }
 
