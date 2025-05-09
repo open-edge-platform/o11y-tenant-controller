@@ -31,7 +31,7 @@ jobs:
       repository-projects: read
       security-events: write
       statuses: read
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@791c0c74ac05e6d972fa6de8c979e854336e9a41 # 0.1.10
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@595da724e099c3a452460e7275423204efa2cb4b # 0.1.11
     with:
       run_version_check: true
       run_version_tag: true
