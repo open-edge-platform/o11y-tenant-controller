@@ -6,6 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 # Edge Orchestrator Observability Tenant Controller
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/open-edge-platform/o11y-tenant-controller/badge)](https://scorecard.dev/viewer/?uri=github.com/open-edge-platform/o11y-tenant-controller)
 
 [alerting-monitor]: https://github.com/open-edge-platform/o11y-alerting-monitor
 [edgenode-observability]: https://github.com/open-edge-platform/o11y-charts/tree/main/charts/edgenode-observability
