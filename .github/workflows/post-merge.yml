@@ -50,5 +50,5 @@ jobs:
       run_helm_push: true
       run_artifact: false
       run_version_dev: false
-      secrets:  # zizmor: ignore[secrets-inherit]
-        inherit
+    secrets:  # zizmor: ignore[secrets-inherit]
+      inherit
