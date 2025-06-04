@@ -48,7 +48,6 @@ jobs:
       run_docker_push: true
       run_helm_build: true
       run_helm_push: true
-      run_artifact: false
       run_version_dev: false
     secrets:
       SYS_ORCH_GITHUB: ${{ secrets.SYS_ORCH_GITHUB }}
