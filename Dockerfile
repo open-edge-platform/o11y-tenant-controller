@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Building environment
-FROM golang:1.24.5-alpine@sha256:daae04ebad0c21149979cd8e9db38f565ecefd8547cf4a591240dc1972cf1399 AS build
+FROM golang:1.24.6-alpine AS build
 
 WORKDIR /workspace
 
