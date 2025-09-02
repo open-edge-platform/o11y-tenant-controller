@@ -71,8 +71,8 @@ github.com/open-edge-platform/o11y-alerting-monitor v1.7.1 h1:92AAJe7K3ByxG+2J13
 github.com/open-edge-platform/o11y-alerting-monitor v1.7.1/go.mod h1:G1yDtBZHpMnsUTz5OXLdOMm49kkvzIue+cEnnhyR3A4=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.1 h1:zkkGmnnk5dlCjiGqDuj8vt5ws0+v3jZdJL1Iy8iihFU=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.1/go.mod h1:hWIod29z2laE24MVwHQLUHPGD88iB2tX5l+xLLReyVA=
-github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.2.0 h1:vJFShs8dXooCwQWePAE9aCOYLjngQNmSZKb7iBjj7jk=
-github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.2.0/go.mod h1:dshRhRSIazosRzSsjP0uddwKbQuq6ObGlDoBeBHY164=
+github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.2.2 h1:dcG+hO1F94nvF3BWYqfB6/wG8ERZIwJAlSCWW5vCS3w=
+github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.2.2/go.mod h1:PEbcIDN/cTOpRWeIxKvnVqS3DRuwHSA1LyNgMQOfnGY=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
