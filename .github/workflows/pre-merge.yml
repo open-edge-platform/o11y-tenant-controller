@@ -10,13 +10,43 @@ on:
       - release-*
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
+  pre-checks:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      filtered_projects: ${{ steps.filter-changes.outputs.filtered_projects }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8   # v5.0.0
+        with:
+          persist-credentials: false
+      - name: "Verify Branch Name"
+        uses: open-edge-platform/orch-ci/verify-branch-name@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
+      - name: "Discover Changed Subfolders"
+        id: discover-changes
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
+      - name: "Filter Out Unwanted Changed Subfolders"
+        id: filter-changes
+        env:
+          changed_projects: ${{ steps.discover-changes.outputs.changed_projects }}
+        run: |
+          folders_to_remove='[".github","LICENSES"]'
+
+          filtered_projects=$(echo "$changed_projects" | jq -cr --argjson folders_to_remove "$folders_to_remove" 'map(select(. as $item | $folders_to_remove | index($item) | not))')
+          echo "filtered_projects=${filtered_projects}" >> ${GITHUB_OUTPUT}
   pre-merge:
     permissions:
       contents: read
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@76700c2fb6d547733b9218d9638dca43f5296399 # 0.1.52
+    needs: pre-checks
+    if: ${{ needs.pre-checks.outputs.filtered_projects != '[]' && needs.pre-checks.outputs.filtered_projects != '[""]' }}
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
     with:
       run_reuse_check: true
       run_version_check: true
@@ -34,3 +64,22 @@ jobs:
       artifacts_path: |
         ./build/coverage.out
         ./build/coverage.xml
+  final-check:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [pre-merge]
+    steps:
+      - name: Final Status Check
+        env:
+          pre_merge_result: ${{ needs.pre-merge.result }}
+        run: |
+          echo "Pre-merge result: $pre_merge_result"
+
+          if [ "$pre_merge_result" == "success" ] || [ "$pre_merge_result" == "skipped" ]; then
+            echo "Pre-merge check passed successfully."
+          else
+            echo "Pre-merge checks failed. PR can't be merged"
+            exit 1
+          fi
