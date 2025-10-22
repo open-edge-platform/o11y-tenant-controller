@@ -18,23 +18,27 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     outputs:
-      filtered_projects: ${{ steps.filter-changes.outputs.filtered_projects }}
+      filtered_files: ${{ steps.check-files.outputs.filtered_files }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           persist-credentials: false
-      - name: "Discover Changed Subfolders"
-        id: discover-changes
-        uses: open-edge-platform/orch-ci/discover-changed-subfolders@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
-      - name: "Filter Out Unwanted Changed Subfolders"
-        id: filter-changes
+      - name: "Discover Changed Files"
+        id: discover-changed-files
+        uses: open-edge-platform/orch-ci/discover-changed-files@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
+        with:
+          project_folder: "."
+      - name: "Filter Out Unwanted Changed Files"
+        id: check-files
         env:
-          changed_projects: ${{ steps.discover-changes.outputs.changed_projects }}
+          changed_files: ${{ steps.discover-changed-files.outputs.changed_files }}
         run: |
-          folders_to_remove='[".github","LICENSES"]'
+          file_paths_to_remove=$(find .github)
+          file_paths_to_remove+=$(find LICENSES)
 
-          filtered_projects=$(echo "$changed_projects" | jq -cr --argjson folders_to_remove "$folders_to_remove" 'map(select(. as $item | $folders_to_remove | index($item) | not))')
-          echo "filtered_projects=${filtered_projects}" >> ${GITHUB_OUTPUT}
+          files_to_remove=$(echo "$file_paths_to_remove" | jq -R . | jq -s -c .)
+          filtered_files=$(echo "$changed_files" | jq -cr --argjson files_to_remove "$files_to_remove" 'map(select(. as $item | $files_to_remove | index($item) | not))')
+          echo "filtered_files=${filtered_files}" >> ${GITHUB_OUTPUT}
   post-merge:
     permissions:
       # it combines `read-all` with `contents: write` and `security-events: write` - all of them needed by `post-merge.yml` workflow
@@ -54,7 +58,7 @@ jobs:
       security-events: write
       statuses: read
     needs: pre-checks
-    if: ${{ needs.pre-checks.outputs.filtered_projects != '[]' && needs.pre-checks.outputs.filtered_projects != '[""]' }}
+    if: ${{ needs.pre-checks.outputs.filtered_files != '[]' && needs.pre-checks.outputs.filtered_files != '[""]' }}
     uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
     with:
       run_version_check: true
