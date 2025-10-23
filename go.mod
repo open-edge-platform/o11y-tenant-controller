@@ -3,7 +3,7 @@ module github.com/open-edge-platform/o11y-tenant-controller
 go 1.24.6
 
 require (
-	github.com/onsi/ginkgo/v2 v2.26.0
+	github.com/onsi/ginkgo/v2 v2.27.1
 	github.com/onsi/gomega v1.38.2
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.1
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.1
