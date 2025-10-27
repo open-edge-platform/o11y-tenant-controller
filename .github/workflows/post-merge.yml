@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
       - name: "Discover Changed Files"
         id: discover-changed-files
-        uses: open-edge-platform/orch-ci/discover-changed-files@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
+        uses: open-edge-platform/orch-ci/discover-changed-files@a7adb596be29b5b9f3a7053bed637d20875ef1df  # 0.1.54
         with:
           project_folder: "."
       - name: "Filter Out Unwanted Changed Files"
@@ -59,7 +59,7 @@ jobs:
       statuses: read
     needs: pre-checks
     if: ${{ needs.pre-checks.outputs.filtered_files != '[]' && needs.pre-checks.outputs.filtered_files != '[""]' }}
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@e4fa54613527cfaad83ba8b625fd845a4ab8409d  # 0.1.53
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@a7adb596be29b5b9f3a7053bed637d20875ef1df  # 0.1.54
     with:
       run_version_check: true
       run_version_tag: true
