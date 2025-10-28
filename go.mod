@@ -3,7 +3,7 @@ module github.com/open-edge-platform/o11y-tenant-controller
 go 1.24.6
 
 require (
-	github.com/onsi/ginkgo/v2 v2.27.1
+	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.1
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.1
@@ -49,7 +49,6 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.27.0 // indirect
