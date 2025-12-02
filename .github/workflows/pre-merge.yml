@@ -29,10 +29,10 @@ jobs:
         with:
           persist-credentials: false
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@592eafb7c84669729eb1adc610515bad61c3550b  # 0.1.67
+        uses: open-edge-platform/orch-ci/verify-branch-name@d3fe218ea585fb390b73c87f9e482cbe1424829c  # 0.1.68
       - name: "Discover Changed Files"
         id: discover-changed-files
-        uses: open-edge-platform/orch-ci/discover-changed-files@592eafb7c84669729eb1adc610515bad61c3550b  # 0.1.67
+        uses: open-edge-platform/orch-ci/discover-changed-files@d3fe218ea585fb390b73c87f9e482cbe1424829c  # 0.1.68
         with:
           project_folder: "."
       - name: "Filter Out Unwanted Changed Files"
