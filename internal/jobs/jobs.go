@@ -189,7 +189,7 @@ func (j *job) cancel() {
 func (j *job) manageTenant(parentCtx context.Context, tenantAction func(context.Context) error, action controller.Action) {
 	cnt := 0
 	id := j.project.UID
-	ctx := context.WithValue(parentCtx, util.ContextKeyTenantID, string(id))
+	ctx := context.WithValue(parentCtx, utility.ContextKeyTenantID, string(id))
 
 	for {
 		err := tenantAction(ctx)
@@ -214,7 +214,7 @@ func (j *job) manageTenant(parentCtx context.Context, tenantAction func(context.
 			cnt++
 		}
 
-		err = util.SleepWithContext(ctx, sleepTime)
+		err = utility.SleepWithContext(ctx, sleepTime)
 		if errors.Is(err, context.Canceled) {
 			log.Printf("%v action for tenantID %q cancelled", action.String(), id)
 			break
@@ -322,7 +322,7 @@ func removeProjectMetadataByID(projectID string) {
 func extractLabelsFrom(project *nexus.RuntimeprojectRuntimeProject) (projectID, projectName, orgName string) {
 	orgName = ""
 	if project.GetLabels() != nil {
-		orgName = project.GetLabels()[util.OrgNameLabel]
+		orgName = project.GetLabels()[utility.OrgNameLabel]
 	}
 
 	return string(project.UID), project.DisplayName(), orgName

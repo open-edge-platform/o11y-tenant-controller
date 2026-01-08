@@ -19,9 +19,9 @@ type deleteStatus struct {
 }
 
 func CleanupTenant(ctx context.Context, urlCfg config.Mimir) error {
-	tenantID, ok := ctx.Value(util.ContextKeyTenantID).(string)
+	tenantID, ok := ctx.Value(utility.ContextKeyTenantID).(string)
 	if !ok {
-		return fmt.Errorf("failed to retrieve %q from context", util.ContextKeyTenantID)
+		return fmt.Errorf("failed to retrieve %q from context", utility.ContextKeyTenantID)
 	}
 	log.Printf("Deleting tenantID %q metrics", tenantID)
 
@@ -35,7 +35,7 @@ func CleanupTenant(ctx context.Context, urlCfg config.Mimir) error {
 		return fmt.Errorf("failed to delete metrics for tenantID %q: %w", tenantID, err)
 	}
 
-	if urlCfg.DeleteVerifyMode == util.StrictMode {
+	if urlCfg.DeleteVerifyMode == utility.StrictMode {
 		err = checkDeletionStatus(ctx, urlCfg, tenantID)
 		if err != nil {
 			return fmt.Errorf("failed to check deletion status for tenantID %q: %w", tenantID, err)
@@ -48,13 +48,13 @@ func CleanupTenant(ctx context.Context, urlCfg config.Mimir) error {
 
 func flushIngesters(ctx context.Context, urlCfg config.Mimir, tenantID string) error {
 	urlRaw := fmt.Sprintf("%v/ingester/flush?wait=true", urlCfg.Ingester)
-	_, err := util.GetReq(ctx, urlRaw, tenantID)
+	_, err := utility.GetReq(ctx, urlRaw, tenantID)
 	return err
 }
 
 func deleteMetricsRequest(ctx context.Context, urlCfg config.Mimir, tenantID string) error {
 	urlRaw := fmt.Sprintf("%v/compactor/delete_tenant", urlCfg.Compactor)
-	return util.PostReq(ctx, urlRaw, tenantID)
+	return utility.PostReq(ctx, urlRaw, tenantID)
 }
 
 func checkDeletionStatus(ctx context.Context, urlCfg config.Mimir, tenantID string) error {
@@ -62,7 +62,7 @@ func checkDeletionStatus(ctx context.Context, urlCfg config.Mimir, tenantID stri
 	urlRaw := fmt.Sprintf("%v/compactor/delete_tenant_status", urlCfg.Compactor)
 
 	for {
-		body, err := util.GetReq(ctx, urlRaw, tenantID)
+		body, err := utility.GetReq(ctx, urlRaw, tenantID)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func checkDeletionStatus(ctx context.Context, urlCfg config.Mimir, tenantID stri
 			break
 		}
 
-		if err := util.SleepWithContext(ctx, urlCfg.PollingRate); err != nil {
+		if err := utility.SleepWithContext(ctx, urlCfg.PollingRate); err != nil {
 			return err
 		}
 	}

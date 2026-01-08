@@ -35,7 +35,7 @@ func TestCleanup(t *testing.T) {
 		flushHTTPcode              int
 		deleteTenantHTTPCode       int
 		deleteTenantStatusHTTPCode int
-		deleteVerifyMode           util.VerifyMode
+		deleteVerifyMode           utility.VerifyMode
 	}{
 		"Test cleanup path - no value in context": {
 			errorReturned:              true,
@@ -43,7 +43,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusNoContent,
 			deleteTenantHTTPCode:       http.StatusNoContent,
 			deleteTenantStatusHTTPCode: http.StatusOK,
-			deleteVerifyMode:           util.StrictMode,
+			deleteVerifyMode:           utility.StrictMode,
 		},
 		"Test cleanup path - no error": {
 			errorReturned:              false,
@@ -51,7 +51,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusNoContent,
 			deleteTenantHTTPCode:       http.StatusNoContent,
 			deleteTenantStatusHTTPCode: http.StatusOK,
-			deleteVerifyMode:           util.StrictMode,
+			deleteVerifyMode:           utility.StrictMode,
 		},
 		"Test cleanup path - flush error": {
 			errorReturned:              true,
@@ -59,7 +59,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusInternalServerError,
 			deleteTenantHTTPCode:       http.StatusNoContent,
 			deleteTenantStatusHTTPCode: http.StatusOK,
-			deleteVerifyMode:           util.StrictMode,
+			deleteVerifyMode:           utility.StrictMode,
 		},
 		"Test cleanup path - deletion tenant error": {
 			errorReturned:              true,
@@ -67,7 +67,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusNoContent,
 			deleteTenantHTTPCode:       http.StatusInternalServerError,
 			deleteTenantStatusHTTPCode: http.StatusOK,
-			deleteVerifyMode:           util.StrictMode,
+			deleteVerifyMode:           utility.StrictMode,
 		},
 		"Test cleanup path - deletion tenant status error": {
 			errorReturned:              true,
@@ -75,7 +75,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusNoContent,
 			deleteTenantHTTPCode:       http.StatusNoContent,
 			deleteTenantStatusHTTPCode: http.StatusInternalServerError,
-			deleteVerifyMode:           util.StrictMode,
+			deleteVerifyMode:           utility.StrictMode,
 		},
 		"Test cleanup path - deletion status check disabled": {
 			errorReturned:              false,
@@ -83,7 +83,7 @@ func TestCleanup(t *testing.T) {
 			flushHTTPcode:              http.StatusNoContent,
 			deleteTenantHTTPCode:       http.StatusNoContent,
 			deleteTenantStatusHTTPCode: http.StatusInternalServerError,
-			deleteVerifyMode:           util.LooseMode,
+			deleteVerifyMode:           utility.LooseMode,
 		},
 	}
 	for name, test := range tests {
@@ -110,7 +110,7 @@ func TestCleanup(t *testing.T) {
 
 			ctx := t.Context()
 			if test.contextValue {
-				ctx = context.WithValue(ctx, util.ContextKeyTenantID, "foo")
+				ctx = context.WithValue(ctx, utility.ContextKeyTenantID, "foo")
 			}
 
 			err := CleanupTenant(ctx, urlCfg)

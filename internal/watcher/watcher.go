@@ -31,7 +31,7 @@ func CreateUpdateWatcher(ctx context.Context, project *nexus.RuntimeprojectRunti
 		return errors.New("failed to create/update watcher: project cannot be nil")
 	}
 
-	watcher, err := project.GetActiveWatchers(ctx, util.AppName)
+	watcher, err := project.GetActiveWatchers(ctx, utility.AppName)
 	if err != nil && !nexus.IsChildNotFound(err) && !nexus.IsNotFound(err) {
 		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.UID, err)
 	}
@@ -47,7 +47,7 @@ func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 	}
 
 	// Get watcher to check tenantID in message
-	watcher, err := project.GetActiveWatchers(ctx, util.AppName)
+	watcher, err := project.GetActiveWatchers(ctx, utility.AppName)
 	if err != nil && !nexus.IsChildNotFound(err) && !nexus.IsNotFound(err) {
 		return fmt.Errorf("failed to delete watcher for tenant %q: %w", project.UID, err)
 	}
@@ -62,7 +62,7 @@ func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 	}
 
 	log.Printf("Deleting watcher for tenantID %q", project.UID)
-	err = project.DeleteActiveWatchers(ctx, util.AppName)
+	err = project.DeleteActiveWatchers(ctx, utility.AppName)
 
 	if nexus.IsNotFound(err) || nexus.IsChildNotFound(err) {
 		log.Printf("Watcher already deleted for tenantID %q", project.UID)
@@ -75,9 +75,9 @@ func DeleteWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 }
 
 func checkWatcher(ctx context.Context, watcher *nexus.ProjectactivewatcherProjectActiveWatcher) error {
-	tenantID, ok := ctx.Value(util.ContextKeyTenantID).(string)
+	tenantID, ok := ctx.Value(utility.ContextKeyTenantID).(string)
 	if !ok {
-		return fmt.Errorf("failed to retrieve %q from context", util.ContextKeyTenantID)
+		return fmt.Errorf("failed to retrieve %q from context", utility.ContextKeyTenantID)
 	}
 
 	if watcher == nil {
@@ -107,7 +107,7 @@ func createWatcher(ctx context.Context, project *nexus.RuntimeprojectRuntimeProj
 	log.Printf("Creating watcher for tenantID %q", project.UID)
 	_, err := project.AddActiveWatchers(ctx, &projectwatchv1.ProjectActiveWatcher{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: util.AppName,
+			Name: utility.AppName,
 		},
 		Spec: projectwatchv1.ProjectActiveWatcherSpec{
 			StatusIndicator: status,

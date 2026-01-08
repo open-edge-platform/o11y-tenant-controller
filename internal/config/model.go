@@ -38,18 +38,18 @@ type Job struct {
 }
 
 type Mimir struct {
-	Ingester         string          `yaml:"ingester"`
-	Compactor        string          `yaml:"compactor"`
-	PollingRate      time.Duration   `yaml:"pollingRate"`
-	DeleteVerifyMode util.VerifyMode `yaml:"deleteVerifyMode"`
+	Ingester         string             `yaml:"ingester"`
+	Compactor        string             `yaml:"compactor"`
+	PollingRate      time.Duration      `yaml:"pollingRate"`
+	DeleteVerifyMode utility.VerifyMode `yaml:"deleteVerifyMode"`
 }
 
 type Loki struct {
-	Write            string          `yaml:"write"`
-	Backend          string          `yaml:"backend"`
-	PollingRate      time.Duration   `yaml:"pollingRate"`
-	MaxPollingRate   time.Duration   `yaml:"maxPollingRate"`
-	DeleteVerifyMode util.VerifyMode `yaml:"deleteVerifyMode"`
+	Write            string             `yaml:"write"`
+	Backend          string             `yaml:"backend"`
+	PollingRate      time.Duration      `yaml:"pollingRate"`
+	MaxPollingRate   time.Duration      `yaml:"maxPollingRate"`
+	DeleteVerifyMode utility.VerifyMode `yaml:"deleteVerifyMode"`
 }
 
 type Endpoints struct {

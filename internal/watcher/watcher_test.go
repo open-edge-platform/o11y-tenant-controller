@@ -51,7 +51,7 @@ func TestCreation(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Nil watcher, context with value - error expected", func(t *testing.T) {
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 
 		err := updateWatcher(ctx, nil, projectwatchv1.StatusIndicationIdle, "foo", "test")
 		require.ErrorContains(t, err, "failed to update watcher: watcher cannot be nil", "UpdateWatcher function didn't return expected error")
@@ -74,7 +74,7 @@ func TestUpdate(t *testing.T) {
 		watcher, err := prepareWatcher(t, "foo")
 		require.NoError(t, err, "Error creating project")
 
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 
 		err = updateWatcher(ctx, watcher, projectwatchv1.StatusIndicationIdle, "foo", "test")
 		require.NoError(t, err, "UpdateWatcher function returned an error")
@@ -90,7 +90,7 @@ func TestDeletion(t *testing.T) {
 		project, err := prepareProject(t)
 		require.NoError(t, err, "Error creating project")
 
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 
 		err = DeleteWatcher(ctx, project)
 		require.NoError(t, err, "DeleteWatcher function returned an error")
@@ -99,7 +99,7 @@ func TestDeletion(t *testing.T) {
 
 func TestCheckWatcher(t *testing.T) {
 	t.Run("Nil watcher, value in context - error expected", func(t *testing.T) {
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 		err := checkWatcher(ctx, nil)
 		require.ErrorContains(t, err, "watcher cannot be nil", "CheckWatcher function didn't return expected error")
 	})
@@ -116,7 +116,7 @@ func TestCheckWatcher(t *testing.T) {
 		watcher, err := prepareWatcher(t, "bar")
 		require.NoError(t, err, "Error creating project")
 
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 
 		err = checkWatcher(ctx, watcher)
 		require.ErrorAs(t, err, &IDsDoNotMatchError{}, "CheckWatcher didn't return an IDsDoNotMatchError")
@@ -126,7 +126,7 @@ func TestCheckWatcher(t *testing.T) {
 		watcher, err := prepareWatcher(t, "foo")
 		require.NoError(t, err, "Error creating project")
 
-		ctx := context.WithValue(t.Context(), util.ContextKeyTenantID, "foo")
+		ctx := context.WithValue(t.Context(), utility.ContextKeyTenantID, "foo")
 
 		err = checkWatcher(ctx, watcher)
 		require.NoError(t, err, "CheckWatcher function returned an error")
