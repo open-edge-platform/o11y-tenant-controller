@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-package util
+package util //nolint:revive // keep name since package contains utility functions
 
 import (
 	"context"
