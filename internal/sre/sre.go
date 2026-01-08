@@ -16,9 +16,9 @@ import (
 )
 
 func InitializeTenant(ctx context.Context, sre proto.ManagementClient) error {
-	tenantID, ok := ctx.Value(util.ContextKeyTenantID).(string)
+	tenantID, ok := ctx.Value(utility.ContextKeyTenantID).(string)
 	if !ok {
-		return fmt.Errorf("failed to retrieve %q from context", util.ContextKeyTenantID)
+		return fmt.Errorf("failed to retrieve %q from context", utility.ContextKeyTenantID)
 	}
 
 	log.Printf("Creating tenantID %q in sre-exporter", tenantID)
@@ -35,9 +35,9 @@ func InitializeTenant(ctx context.Context, sre proto.ManagementClient) error {
 }
 
 func CleanupTenant(ctx context.Context, sre proto.ManagementClient) error {
-	tenantID, ok := ctx.Value(util.ContextKeyTenantID).(string)
+	tenantID, ok := ctx.Value(utility.ContextKeyTenantID).(string)
 	if !ok {
-		return fmt.Errorf("failed to retrieve %q from context", util.ContextKeyTenantID)
+		return fmt.Errorf("failed to retrieve %q from context", utility.ContextKeyTenantID)
 	}
 
 	log.Printf("Deleting tenantID %q in sre-exporter", tenantID)

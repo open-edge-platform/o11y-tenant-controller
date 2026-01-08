@@ -87,7 +87,7 @@ func (tc *TenantController) Start() error {
 	}
 
 	// Callback for project watcher deletion is safeguard for unintended project watcher deletion eg. during tenant controller update.
-	if _, err := tc.client.TenancyMultiTenancy().Config().ProjectWatchers(util.AppName).RegisterDeleteCallback(tc.projectWatcherDeleteHandler); err != nil {
+	if _, err := tc.client.TenancyMultiTenancy().Config().ProjectWatchers(utility.AppName).RegisterDeleteCallback(tc.projectWatcherDeleteHandler); err != nil {
 		return fmt.Errorf("unable to register project watcher delete callback: %w", err)
 	}
 
@@ -150,7 +150,7 @@ func (tc *TenantController) addProjectWatcher() error {
 	defer cancel()
 
 	_, err := tc.client.TenancyMultiTenancy().Config().AddProjectWatchers(ctx, &projectwatcherv1.ProjectWatcher{ObjectMeta: metav1.ObjectMeta{
-		Name: util.AppName,
+		Name: utility.AppName,
 	}})
 
 	if nexus.IsAlreadyExists(err) {
@@ -165,7 +165,7 @@ func (tc *TenantController) deleteProjectWatcher() error {
 	ctx, cancel := context.WithTimeout(context.Background(), tc.watcherTimeout)
 	defer cancel()
 
-	err := tc.client.TenancyMultiTenancy().Config().DeleteProjectWatchers(ctx, util.AppName)
+	err := tc.client.TenancyMultiTenancy().Config().DeleteProjectWatchers(ctx, utility.AppName)
 
 	if nexus.IsChildNotFound(err) {
 		log.Print("Project watcher already deleted")
@@ -179,7 +179,7 @@ func (tc *TenantController) addHandler(project *nexus.RuntimeprojectRuntimeProje
 	log.Printf("Project %q added", project.UID)
 	pd := projects.ProjectData{
 		ProjectName: project.DisplayName(),
-		OrgID:       project.GetLabels()[util.OrgNameLabel],
+		OrgID:       project.GetLabels()[utility.OrgNameLabel],
 	}
 
 	if project.Spec.Deleted {
@@ -200,7 +200,7 @@ func (tc *TenantController) updateHandler(_, project *nexus.RuntimeprojectRuntim
 	log.Printf("Project %q updated", project.UID)
 	pd := projects.ProjectData{
 		ProjectName: project.DisplayName(),
-		OrgID:       project.GetLabels()[util.OrgNameLabel],
+		OrgID:       project.GetLabels()[utility.OrgNameLabel],
 	}
 
 	if project.Spec.Deleted {
