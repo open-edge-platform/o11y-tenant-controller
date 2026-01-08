@@ -84,6 +84,7 @@ var _ = Describe("SRE", Ordered, func() {
 		lis = bufconn.Listen(1024 * 1024)
 
 		// Create and register the mock server
+		// nosemgrep: go.grpc.security.grpc-server-insecure-connection.grpc-server-insecure-connection // test scenario
 		server = grpc.NewServer()
 		mockServer = newMockManagementServer()
 		proto.RegisterManagementServer(server, mockServer)
