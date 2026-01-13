@@ -84,6 +84,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 		lis = bufconn.Listen(1024 * 1024)
 
 		// Create and register the mock server
+		// nosemgrep: go.grpc.security.grpc-server-insecure-connection.grpc-server-insecure-connection // test scenario
 		server = grpc.NewServer()
 		mockServer = newMockManagementServer()
 		proto.RegisterManagementServer(server, mockServer)
@@ -124,13 +125,13 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 	})
 
 	It("Initialize tenant with valid name", func() {
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "NewTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "NewTenant")
 		err := alertingmonitor.InitializeTenant(ctx, client)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
 	It("Initialize tenant with valid name - tenant already exists", func() {
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "ExistingTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "ExistingTenant")
 
 		// First initialization should succeed
 		err := alertingmonitor.InitializeTenant(ctx, client)
@@ -144,7 +145,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 	It("Initialize tenant with invalid (empty) name - error returned when server validates tenant name", func() {
 		tenant := ""
 
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, tenant)
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, tenant)
 		err := alertingmonitor.InitializeTenant(ctx, client)
 		Expect(err).Should(HaveOccurred())
 
@@ -160,7 +161,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 		mockServer.simulateError = true
 		mockServer.errorToReturn = status.Error(codes.Internal, "unexpected server error")
 
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "NewTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "NewTenant")
 		err := alertingmonitor.InitializeTenant(ctx, client)
 		Expect(err).Should(HaveOccurred())
 
@@ -177,7 +178,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 	})
 
 	It("Cleanup tenant with valid name", func() {
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "NewTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "NewTenant")
 		// Initialize first so the map is not empty
 		err := alertingmonitor.InitializeTenant(ctx, client)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -188,7 +189,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 	})
 
 	It("Cleanup tenant with valid name - tenant has already been deleted", func() {
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "NewTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "NewTenant")
 		err := alertingmonitor.InitializeTenant(ctx, client)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -203,7 +204,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 	It("Cleanup tenant with invalid (empty) name - error returned when server validates tenant name", func() {
 		tenant := ""
 
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, tenant)
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, tenant)
 		err := alertingmonitor.CleanupTenant(ctx, client)
 		Expect(err).Should(HaveOccurred())
 
@@ -219,7 +220,7 @@ var _ = Describe("AlertingMonitor", Ordered, func() {
 		mockServer.simulateError = true
 		mockServer.errorToReturn = status.Error(codes.Internal, "unexpected server error")
 
-		ctx := context.WithValue(context.Background(), util.ContextKeyTenantID, "NewTenant")
+		ctx := context.WithValue(context.Background(), utility.ContextKeyTenantID, "NewTenant")
 		err := alertingmonitor.CleanupTenant(ctx, client)
 		Expect(err).Should(HaveOccurred())
 

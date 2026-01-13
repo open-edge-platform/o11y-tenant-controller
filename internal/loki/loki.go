@@ -24,9 +24,9 @@ type DeleteLogRequest []struct {
 }
 
 func CleanupTenant(ctx context.Context, urlCfg config.Loki) error {
-	tenantID, ok := ctx.Value(util.ContextKeyTenantID).(string)
+	tenantID, ok := ctx.Value(utility.ContextKeyTenantID).(string)
 	if !ok {
-		return fmt.Errorf("failed to retrieve %q from context", util.ContextKeyTenantID)
+		return fmt.Errorf("failed to retrieve %q from context", utility.ContextKeyTenantID)
 	}
 	log.Printf("Deleting tenantID %q logs", tenantID)
 
@@ -48,12 +48,12 @@ func CleanupTenant(ctx context.Context, urlCfg config.Loki) error {
 
 func flushIngesters(ctx context.Context, urlCfg config.Loki, tenantID string) error {
 	urlRaw := fmt.Sprintf("%v/flush", urlCfg.Write)
-	return util.PostReq(ctx, urlRaw, tenantID)
+	return utility.PostReq(ctx, urlRaw, tenantID)
 }
 
 func deleteLogsRequest(ctx context.Context, urlCfg config.Loki, tenantID string) error {
 	urlRaw := fmt.Sprintf("%v/loki/api/v1/delete?query={__tenant_id__=\"%v\"}&start=0000000001", urlCfg.Backend, tenantID)
-	return util.PostReq(ctx, urlRaw, tenantID)
+	return utility.PostReq(ctx, urlRaw, tenantID)
 }
 
 func checkDeletionStatus(ctx context.Context, urlCfg config.Loki, tenantID string) error {
@@ -65,11 +65,11 @@ func checkDeletionStatus(ctx context.Context, urlCfg config.Loki, tenantID strin
 
 	log.Printf("Waiting for tenantID %q logs deletion in Loki...", tenantID)
 	for {
-		if err := util.SleepWithContext(ctx, sleepTime); err != nil {
+		if err := utility.SleepWithContext(ctx, sleepTime); err != nil {
 			return err
 		}
 
-		body, err := util.GetReq(ctx, urlRaw, tenantID)
+		body, err := utility.GetReq(ctx, urlRaw, tenantID)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func checkDeletionStatus(ctx context.Context, urlCfg config.Loki, tenantID strin
 
 		if len(deletionLogBody) != 0 {
 			newestDelReq := deletionLogBody[len(deletionLogBody)-1]
-			if urlCfg.DeleteVerifyMode == util.LooseMode {
+			if urlCfg.DeleteVerifyMode == utility.LooseMode {
 				break
 			}
 
