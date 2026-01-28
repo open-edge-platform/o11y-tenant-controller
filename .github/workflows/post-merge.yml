@@ -77,7 +77,7 @@ jobs:
       run_docker_push: true
       run_helm_build: true
       run_helm_push: true
-      run_version_dev: false
+      run_version_dev: true
     secrets:
       SYS_EMF_GH_TOKEN: ${{ secrets.SYS_EMF_GH_TOKEN }}
       NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
