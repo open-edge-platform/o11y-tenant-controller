@@ -6,7 +6,7 @@
 # someone opens a pull request.
 
 # Everything requires Observability team review by default
-* @cjnolan @rranjan3 @SushilLakra
+* @cjnolan @rranjan3 @SushilLakra @palade
 
 # CI files
-.github/ @adimoft @daveroge @shanedonohue @manilk1x @cjnolan @rranjan3 @SushilLakra
+.github/ @adimoft @daveroge @shanedonohue @manilk1x @cjnolan @rranjan3 @SushilLakra @palade
