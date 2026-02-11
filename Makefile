@@ -149,7 +149,7 @@ lint-go:
 lint-markdown:
 	@# Help: Runs linter for markdown files
 	@echo "---MAKEFILE LINT-MARKDOWN---"
-	markdownlint-cli2 '**/*.md' "!.github" "!**ci/*"
+	markdownlint-cli2 '**/*.md' "!.github" "!ci/*"
 	@echo "---END MAKEFILE LINT-MARKDOWN---"
 
 lint-yaml:
