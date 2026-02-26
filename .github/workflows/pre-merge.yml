@@ -29,10 +29,10 @@ jobs:
         with:
           persist-credentials: false
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@cd0b18b2ef0e2c52665525fa5503b8ec5edd232f  # 2026.0.10
+        uses: open-edge-platform/orch-ci/verify-branch-name@24a3a495be45af021486e265cf09a17ac3798405  # 2026.0.13
       - name: "Discover Changed Files"
         id: discover-changed-files
-        uses: open-edge-platform/orch-ci/discover-changed-files@cd0b18b2ef0e2c52665525fa5503b8ec5edd232f  # 2026.0.10
+        uses: open-edge-platform/orch-ci/discover-changed-files@24a3a495be45af021486e265cf09a17ac3798405  # 2026.0.13
         with:
           project_folder: "."
       - name: "Filter Out Unwanted Changed Files"
@@ -51,7 +51,7 @@ jobs:
       contents: read
     needs: pre-checks
     if: ${{ needs.pre-checks.outputs.filtered_files != '[]' && needs.pre-checks.outputs.filtered_files != '[""]' }}
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@cd0b18b2ef0e2c52665525fa5503b8ec5edd232f  # 2026.0.10
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@24a3a495be45af021486e265cf09a17ac3798405  # 2026.0.13
     with:
       run_reuse_check: true
       run_version_check: true
