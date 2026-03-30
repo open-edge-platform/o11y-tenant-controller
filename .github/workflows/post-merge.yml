@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
       - name: "Discover Changed Files"
         id: discover-changed-files
-        uses: open-edge-platform/orch-ci/discover-changed-files@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
+        uses: open-edge-platform/orch-ci/discover-changed-files@d40dfda9598df896aa20cb1dc2c950d6444e8fa7  # 2026.0.19
         with:
           project_folder: "."
       - name: "Filter Out Unwanted Changed Files"
