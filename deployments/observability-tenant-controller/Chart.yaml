@@ -1,12 +1,12 @@
-# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 apiVersion: v2
 name: observability-tenant-controller
 description: A Helm chart for Observability Tenant Controller
 type: application
-version: 0.7.2
-appVersion: 0.7.2
+version: 0.7.3
+appVersion: 0.7.3
 annotations:
-  revision: e919c7268ab858b71a2671b8a6fd92f41fae0d83
-  created: "2026-02-18T14:21:10Z"
+  revision: b3127b7bb59e87846220f287a4a7e3dc374a30ef
+  created: "2026-04-01T13:45:19Z"

@@ -1,6 +1,6 @@
 module github.com/open-edge-platform/o11y-tenant-controller
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.28.1
