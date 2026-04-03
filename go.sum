@@ -101,8 +101,8 @@ github.com/onsi/ginkgo/v2 v2.28.1 h1:S4hj+HbZp40fNKuLUQOYLDgZLwNUVn19N3Atb98NCyI
 github.com/onsi/ginkgo/v2 v2.28.1/go.mod h1:CLtbVInNckU3/+gC8LzkGUb9oF+e8W8TdUsxPwvdOgE=
 github.com/onsi/gomega v1.39.1 h1:1IJLAad4zjPn2PsnhH70V4DKRFlrCzGBNrNaru+Vf28=
 github.com/onsi/gomega v1.39.1/go.mod h1:hL6yVALoTOxeWudERyfppUcZXjMwIMLnuSfruD2lcfg=
-github.com/open-edge-platform/o11y-alerting-monitor v1.7.8 h1:wSaeNSO/6JdL0rkhmQiFo4WMtscifbVjomQ7tnlfnT8=
-github.com/open-edge-platform/o11y-alerting-monitor v1.7.8/go.mod h1:ZSHdqw5pWHBU1mrgbyeLRS4r4L0RFAj1yq9iTYVkOvI=
+github.com/open-edge-platform/o11y-alerting-monitor v1.7.9 h1:yW8UtYdg2S8emmKDv52817h6+z4EMHt38OA5FNlm6QQ=
+github.com/open-edge-platform/o11y-alerting-monitor v1.7.9/go.mod h1:oLSnfnker++NfCUt/nYv/b3bRa4TZTaeZQC6X760a60=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.5 h1:zuTJs6OYxBXP+Sb+i7NvO1yJ6rotIKaqPxiqtgEMNKA=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.5/go.mod h1:5JjAAGS43xkRfYA09PhOljUdy7giiejtn+7bmT3yIeY=
 github.com/open-edge-platform/orch-utils/tenancy-datamodel v1.2.2 h1:dcG+hO1F94nvF3BWYqfB6/wG8ERZIwJAlSCWW5vCS3w=
