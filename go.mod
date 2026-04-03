@@ -1,6 +1,6 @@
 module github.com/open-edge-platform/o11y-tenant-controller
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/onsi/ginkgo/v2 v2.28.1
@@ -11,7 +11,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.20.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apimachinery v0.35.3
