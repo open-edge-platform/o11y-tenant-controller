@@ -19,12 +19,17 @@ import (
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/open-edge-platform/orch-library/go/pkg/tenancy"
+
 	pb "github.com/open-edge-platform/o11y-tenant-controller/api"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/config"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/controller"
+	"github.com/open-edge-platform/o11y-tenant-controller/internal/handler"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/jobs"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/projects"
 )
+
+const controllerName = "observability-tenant-controller"
 
 func main() {
 	cfgFilePath := flag.String("config", "", "path to the config file")
@@ -60,7 +65,7 @@ func main() {
 	}()
 	log.Printf("gRPC server listening on port %d", grpcServer.Port)
 
-	tenantCtrl, err := controller.New(cfg.Controller.Channel.MaxInflightRequests, cfg.Controller.CreateDeleteWatcherTimeout, &grpcServer)
+	tenantCtrl, err := controller.New(cfg.Controller.Channel.MaxInflightRequests, &grpcServer)
 	if err != nil {
 		log.Panicf("Failed to create tenant controller: %v", err)
 	}
@@ -83,7 +88,6 @@ func main() {
 	}
 
 	err = tenantCtrl.Start()
-	// defer before checking error done on purpose - to ensure cleanup (Start may fail for reasons other than an error at addProjectWatcher).
 	defer tenantCtrl.Stop()
 	if err != nil {
 		log.Panicf("Failed to start tenant controller: %v", err)
@@ -94,6 +98,27 @@ func main() {
 
 	jobManager := jobs.New(tenantCtrl.ComSig, cfg.Job, cfg.Endpoints, amConn, sreConn)
 	jobManager.Start(ticker)
+
+	// Start the tenancy poller.
+	tenantManagerURL := os.Getenv("TENANT_MANAGER_URL")
+	if tenantManagerURL == "" {
+		tenantManagerURL = "http://tenant-manager.orch-iam:8080"
+	}
+
+	h := &handler.TenancyHandler{Controller: tenantCtrl}
+	poller := tenancy.NewPoller(tenantManagerURL, controllerName, h,
+		func(cfg *tenancy.PollerConfig) {
+			cfg.OnError = func(err error, msg string) {
+				log.Printf("tenancy poller: %s: %v", msg, err)
+			}
+		},
+	)
+
+	go func() {
+		if err := poller.Run(ctx); err != nil && ctx.Err() == nil {
+			log.Printf("tenancy poller stopped with error: %v", err)
+		}
+	}()
 
 	<-ctx.Done()
 	jobManager.Stop()

@@ -6,7 +6,6 @@ package jobs
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"sync/atomic"
@@ -14,13 +13,10 @@ import (
 
 	amproto "github.com/open-edge-platform/o11y-alerting-monitor/api/v1/management"
 	sreproto "github.com/open-edge-platform/o11y-sre-exporter/api/config-reloader"
-	projectwatchv1 "github.com/open-edge-platform/orch-utils/tenancy-datamodel/build/apis/projectactivewatcher.edge-orchestrator.intel.com/v1"
-	nexus "github.com/open-edge-platform/orch-utils/tenancy-datamodel/build/nexus-client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/alertingmonitor"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/config"
@@ -30,7 +26,6 @@ import (
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/projects"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/sre"
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/util"
-	"github.com/open-edge-platform/o11y-tenant-controller/internal/watcher"
 )
 
 type jobStatus int
@@ -48,12 +43,19 @@ const (
 	jobCancelled
 	tenantCreated
 	tenantDeleted
-	tenantIDsNotMatch
 )
+
+// projectInfo holds the identifying metadata for a project, replacing
+// the former *nexus.RuntimeprojectRuntimeProject reference.
+type projectInfo struct {
+	ID          string
+	ProjectName string
+	OrgName     string
+}
 
 type JobManager struct {
 	comSig       chan controller.CommChannel
-	jobList      map[types.UID]*job
+	jobList      map[string]*job
 	jobCfg       config.Job
 	endpointsCfg config.Endpoints
 	cancelFn     context.CancelFunc
@@ -64,11 +66,12 @@ type JobManager struct {
 }
 
 type job struct {
-	project      *nexus.RuntimeprojectRuntimeProject
+	project      projectInfo
 	status       atomic.Int32
 	jobCfg       config.Job
 	endpointsCfg config.Endpoints
 	cancelFn     context.CancelFunc
+	resultCh     chan error // signals completion to the caller
 
 	amClient  amproto.ManagementClient
 	sreClient sreproto.ManagementClient
@@ -77,7 +80,7 @@ type job struct {
 func New(channel chan controller.CommChannel, jCfg config.Job, endpoints config.Endpoints, amConn, sreConn *grpc.ClientConn) *JobManager {
 	return &JobManager{
 		comSig:       channel,
-		jobList:      map[types.UID]*job{},
+		jobList:      map[string]*job{},
 		jobCfg:       jCfg,
 		endpointsCfg: endpoints,
 		done:         make(chan struct{}),
@@ -97,21 +100,15 @@ func (jm *JobManager) Start(ticker *time.Ticker) {
 			case v := <-jm.comSig:
 				switch v.Status {
 				case controller.InitializeTenant:
-					jm.startJob(ctx, v.Project, controller.InitializeTenant)
+					jm.startJob(ctx, v, controller.InitializeTenant)
 				case controller.CleanupTenant:
-					jm.startJob(ctx, v.Project, controller.CleanupTenant)
+					jm.startJob(ctx, v, controller.CleanupTenant)
 				}
 			case <-ticker.C:
 				for k, job := range jm.jobList {
 					status := jobStatus(job.status.Load())
-					//nolint:staticcheck // Linter suggests: "QF1003: could use tagged switch on status"
-					// If this suggestion were to be applied, then exhaustive linter would be unhappy
-					// that there are missing cases in switch of iota type jobs.jobStatus
 					if status == tenantDeleted {
 						removeProjectMetadata(job.project)
-						delete(jm.jobList, k)
-					} else if status == tenantIDsNotMatch {
-						removeProjectMetadataByID(string(k))
 						delete(jm.jobList, k)
 					}
 				}
@@ -127,23 +124,30 @@ func (jm *JobManager) Stop() {
 	close(jm.done)
 }
 
-func (jm *JobManager) startJob(ctx context.Context, project *nexus.RuntimeprojectRuntimeProject, action controller.Action) {
-	setProjectMetadata(project, action)
-	job, exists := jm.jobList[project.UID]
+func (jm *JobManager) startJob(ctx context.Context, cc controller.CommChannel, action controller.Action) {
+	pi := projectInfo{
+		ID:          cc.ProjectID,
+		ProjectName: cc.ProjectName,
+		OrgName:     cc.OrgName,
+	}
+	setProjectMetadata(pi, action)
+	j, exists := jm.jobList[cc.ProjectID]
 	if exists {
-		job.cancel()
-		job.run(ctx, action)
+		j.cancel()
+		j.resultCh = cc.Result
+		j.run(ctx, action)
 	} else {
-		job = newJob(project, jm.jobCfg, jm.endpointsCfg, jm.amClient, jm.sreClient)
-		jm.jobList[project.UID] = job
-		job.run(ctx, action)
+		j = newJob(pi, jm.jobCfg, jm.endpointsCfg, jm.amClient, jm.sreClient)
+		j.resultCh = cc.Result
+		jm.jobList[cc.ProjectID] = j
+		j.run(ctx, action)
 	}
 }
 
-func newJob(project *nexus.RuntimeprojectRuntimeProject, jCfg config.Job,
+func newJob(pi projectInfo, jCfg config.Job,
 	endpoints config.Endpoints, am amproto.ManagementClient, sreCl sreproto.ManagementClient) *job {
 	return &job{
-		project:      project,
+		project:      pi,
 		jobCfg:       jCfg,
 		endpointsCfg: endpoints,
 		amClient:     am,
@@ -154,28 +158,42 @@ func newJob(project *nexus.RuntimeprojectRuntimeProject, jCfg config.Job,
 func (j *job) run(parentCtx context.Context, action controller.Action) {
 	j.status.Store(int32(jobInProgress))
 
+	// Capture the result channel for this specific invocation so that a
+	// subsequent startJob() call (which overwrites j.resultCh) cannot cause
+	// the old goroutine to send its result to the new caller's channel.
+	resultCh := j.resultCh
+
 	go func() {
 		ctx, cancel := context.WithCancel(parentCtx)
 		j.cancelFn = cancel
 		defer cancel()
+
+		var jobErr error
 
 		switch action {
 		case controller.InitializeTenant:
 			j.manageTenant(ctx, j.initializeTenant, controller.InitializeTenant)
 			if errors.Is(ctx.Err(), context.Canceled) {
 				j.status.Store(int32(jobCancelled))
-				return
+				jobErr = ctx.Err()
+			} else {
+				j.status.Store(int32(tenantCreated))
 			}
-			j.status.Store(int32(tenantCreated))
 		case controller.CleanupTenant:
 			j.manageTenant(ctx, j.cleanupTenant, controller.CleanupTenant)
 			if errors.Is(ctx.Err(), context.Canceled) {
 				j.status.Store(int32(jobCancelled))
-				return
-			}
-			if jobStatus(j.status.Load()) != tenantIDsNotMatch {
+				jobErr = ctx.Err()
+			} else {
 				j.status.Store(int32(tenantDeleted))
 			}
+		}
+
+		// Signal the caller (if waiting) with the result.
+		// Uses the captured channel, not j.resultCh, to avoid the race
+		// where a new caller's channel receives this goroutine's result.
+		if resultCh != nil {
+			resultCh <- jobErr
 		}
 	}()
 }
@@ -188,19 +206,13 @@ func (j *job) cancel() {
 
 func (j *job) manageTenant(parentCtx context.Context, tenantAction func(context.Context) error, action controller.Action) {
 	cnt := 0
-	id := j.project.UID
-	ctx := context.WithValue(parentCtx, utility.ContextKeyTenantID, string(id))
+	id := j.project.ID
+	ctx := context.WithValue(parentCtx, utility.ContextKeyTenantID, id)
 
 	for {
 		err := tenantAction(ctx)
 		if err == nil {
 			log.Printf("%v action for tenantID %q completed successfully", action.String(), id)
-			break
-		}
-
-		if errors.As(err, &watcher.IDsDoNotMatchError{}) {
-			log.Printf("%v action for tenantID %q completed successfully - watcher deleted manually", action.String(), id)
-			j.status.Store(int32(tenantIDsNotMatch))
 			break
 		}
 
@@ -225,11 +237,8 @@ func (j *job) manageTenant(parentCtx context.Context, tenantAction func(context.
 func (j *job) initializeTenant(parentCtx context.Context) error {
 	timedOutCtx, cancel := context.WithTimeout(parentCtx, j.jobCfg.Timeout)
 	defer cancel()
-	err := watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Creating tenant %q", j.project.UID))
-	if err != nil {
-		return err
-	}
+
+	log.Printf("Creating tenant %q", j.project.ID)
 
 	g, ctx := errgroup.WithContext(timedOutCtx)
 
@@ -242,18 +251,15 @@ func (j *job) initializeTenant(parentCtx context.Context) error {
 		return err
 	}
 
-	return watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationIdle, fmt.Sprintf("Tenant %q created", j.project.UID))
+	log.Printf("Tenant %q created", j.project.ID)
+	return nil
 }
 
 func (j *job) cleanupTenant(parentCtx context.Context) error {
 	timedOutCtx, cancel := context.WithTimeout(parentCtx, j.jobCfg.Timeout)
 	defer cancel()
-	err := watcher.CreateUpdateWatcher(parentCtx, j.project,
-		projectwatchv1.StatusIndicationInProgress, fmt.Sprintf("Deleting tenant %q", j.project.UID))
-	if err != nil {
-		return err
-	}
+
+	log.Printf("Deleting tenant %q", j.project.ID)
 
 	g, ctx := errgroup.WithContext(timedOutCtx)
 
@@ -268,20 +274,20 @@ func (j *job) cleanupTenant(parentCtx context.Context) error {
 		return err
 	}
 
-	return watcher.DeleteWatcher(parentCtx, j.project)
+	log.Printf("Tenant %q deleted", j.project.ID)
+	return nil
 }
 
-func setProjectMetadata(project *nexus.RuntimeprojectRuntimeProject, action controller.Action) {
-	projectID, projectName, orgName := extractLabelsFrom(project)
+func setProjectMetadata(pi projectInfo, action controller.Action) {
 	status := projects.ProjectCreated
 	if action == controller.CleanupTenant {
 		status = projects.ProjectDeleted
 	}
 
 	labels := prometheus.Labels{
-		"projectId":   projectID,
-		"projectName": projectName,
-		"orgName":     orgName,
+		"projectId":   pi.ID,
+		"projectName": pi.ProjectName,
+		"orgName":     pi.OrgName,
 		"status":      string(status),
 	}
 
@@ -289,13 +295,11 @@ func setProjectMetadata(project *nexus.RuntimeprojectRuntimeProject, action cont
 	log.Printf("Added project metadata: %q", labels)
 }
 
-func removeProjectMetadata(project *nexus.RuntimeprojectRuntimeProject) {
-	projectID, projectName, orgName := extractLabelsFrom(project)
-
+func removeProjectMetadata(pi projectInfo) {
 	labels := prometheus.Labels{
-		"projectId":   projectID,
-		"projectName": projectName,
-		"orgName":     orgName,
+		"projectId":   pi.ID,
+		"projectName": pi.ProjectName,
+		"orgName":     pi.OrgName,
 	}
 
 	numberDeleted := projectIDs.DeletePartialMatch(labels)
@@ -304,26 +308,4 @@ func removeProjectMetadata(project *nexus.RuntimeprojectRuntimeProject) {
 	} else {
 		log.Printf("Failed to remove project metadata: %q", labels)
 	}
-}
-
-func removeProjectMetadataByID(projectID string) {
-	labels := prometheus.Labels{
-		"projectId": projectID,
-	}
-
-	numberDeleted := projectIDs.DeletePartialMatch(labels)
-	if numberDeleted > 0 {
-		log.Printf("Removed project metadata: %q", labels)
-	} else {
-		log.Printf("Failed to remove project metadata: %q", labels)
-	}
-}
-
-func extractLabelsFrom(project *nexus.RuntimeprojectRuntimeProject) (projectID, projectName, orgName string) {
-	orgName = ""
-	if project.GetLabels() != nil {
-		orgName = project.GetLabels()[utility.OrgNameLabel]
-	}
-
-	return string(project.UID), project.DisplayName(), orgName
 }
