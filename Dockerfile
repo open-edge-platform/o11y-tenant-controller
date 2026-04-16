@@ -13,7 +13,7 @@ COPY . .
 RUN make build
 
 # Run tenant controller container
-FROM alpine:3.23@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
 
 # Upgrade zlib to fix CVE-2026-22184
 RUN apk add --upgrade --no-cache "zlib>=1.3.2-r0"
