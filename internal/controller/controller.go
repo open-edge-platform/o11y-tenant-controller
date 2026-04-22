@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+// SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 package controller
@@ -9,17 +9,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"sync"
 	"time"
 
-	projectwatcherv1 "github.com/open-edge-platform/orch-utils/tenancy-datamodel/build/apis/projectwatcher.edge-orchestrator.intel.com/v1"
-	nexus "github.com/open-edge-platform/orch-utils/tenancy-datamodel/build/nexus-client"
+	"github.com/open-edge-platform/orch-library/go/pkg/tenancy"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/rest"
 
 	"github.com/open-edge-platform/o11y-tenant-controller/internal/projects"
-	"github.com/open-edge-platform/o11y-tenant-controller/internal/util"
+	utility "github.com/open-edge-platform/o11y-tenant-controller/internal/util"
 )
+
+const defaultTenantManagerURL = "http://tenancy-manager.orch-iam:8080"
 
 type Action int
 
@@ -28,29 +29,29 @@ const (
 	CleanupTenant
 )
 
-type TenantController struct {
-	ComSig         chan CommChannel
-	client         *nexus.Clientset
-	server         *http.Server
-	watcherTimeout time.Duration
-
-	grpcServer projects.Server
-}
-
+// CommChannel carries a tenancy event and the derived action to the JobManager.
 type CommChannel struct {
-	Project *nexus.RuntimeprojectRuntimeProject
-	Status  Action
+	ProjectID   string
+	ProjectName string
+	OrgName     string
+	Status      Action
 }
 
-func New(buffer int, watcherTimeout time.Duration, grpcServer *projects.Server) (*TenantController, error) {
-	c, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read kubernetes service account token: %w", err)
-	}
+// TenantController listens for tenancy events and dispatches jobs to the
+// JobManager via the ComSig channel.
+type TenantController struct {
+	ComSig   chan CommChannel
+	server   *http.Server
+	ctx      context.Context
+	cancel   context.CancelFunc
+	stopOnce sync.Once
+	startMu  sync.Mutex
+	started  bool
+}
 
-	client, err := nexus.NewForConfig(c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open communication with the kubernetes server: %w", err)
+func New(buffer int, grpcServer *projects.Server) (*TenantController, error) {
+	if grpcServer == nil {
+		return nil, fmt.Errorf("grpcServer must not be nil")
 	}
 
 	mux := http.NewServeMux()
@@ -65,31 +66,49 @@ func New(buffer int, watcherTimeout time.Duration, grpcServer *projects.Server) 
 	}
 
 	return &TenantController{
-		ComSig:         make(chan CommChannel, buffer),
-		client:         client,
-		server:         server,
-		watcherTimeout: watcherTimeout,
-		grpcServer:     *grpcServer,
+		ComSig: make(chan CommChannel, buffer),
+		server: server,
 	}, nil
 }
 
-func (tc *TenantController) Start() error {
-	if err := tc.addProjectWatcher(); err != nil {
-		return fmt.Errorf("failed to create project watcher: %w", err)
+// Start launches the tenancy event poller and the Prometheus metrics server.
+// It must be called exactly once; subsequent calls return an error.
+func (tc *TenantController) Start(grpcServer *projects.Server) error {
+	tc.startMu.Lock()
+	if tc.started {
+		tc.startMu.Unlock()
+		return fmt.Errorf("TenantController already started")
+	}
+	tc.started = true
+	tc.startMu.Unlock()
+
+	tenantManagerURL := os.Getenv("TENANT_MANAGER_URL")
+	if tenantManagerURL == "" {
+		tenantManagerURL = defaultTenantManagerURL
 	}
 
-	if _, err := tc.client.TenancyMultiTenancy().Runtime().Orgs("*").Folders("*").Projects("*").RegisterAddCallback(tc.addHandler); err != nil {
-		return fmt.Errorf("unable to register project creation callback: %w", err)
+	ctx, cancel := context.WithCancel(context.Background())
+	tc.ctx = ctx
+	tc.cancel = cancel
+
+	handler := &eventHandler{comSig: tc.ComSig, ctx: ctx, grpcServer: grpcServer}
+
+	poller, err := tenancy.NewPoller(tenantManagerURL, utility.AppName, handler,
+		func(cfg *tenancy.PollerConfig) {
+			cfg.OnError = func(err error, msg string) {
+				log.Printf("tenancy poller error: %s: %v", msg, err)
+			}
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("create tenancy poller: %w", err)
 	}
 
-	if _, err := tc.client.TenancyMultiTenancy().Runtime().Orgs("*").Folders("*").Projects("*").RegisterUpdateCallback(tc.updateHandler); err != nil {
-		return fmt.Errorf("unable to register project update callback: %w", err)
-	}
-
-	// Callback for project watcher deletion is safeguard for unintended project watcher deletion eg. during tenant controller update.
-	if _, err := tc.client.TenancyMultiTenancy().Config().ProjectWatchers(utility.AppName).RegisterDeleteCallback(tc.projectWatcherDeleteHandler); err != nil {
-		return fmt.Errorf("unable to register project watcher delete callback: %w", err)
-	}
+	go func() {
+		if err := poller.Run(tc.ctx); err != nil && !errors.Is(err, context.Canceled) {
+			log.Printf("tenancy poller stopped unexpectedly: %v", err)
+		}
+	}()
 
 	go func() {
 		if err := tc.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -97,122 +116,95 @@ func (tc *TenantController) Start() error {
 		}
 	}()
 
-	log.Print("Tenant controller starting")
+	log.Printf("Tenant controller started (controller=%s url=%s)", utility.AppName, tenantManagerURL)
 	return nil
 }
 
+// Stop shuts down the poller and Prometheus server. Safe to call multiple times.
 func (tc *TenantController) Stop() {
-	log.Print("Tenant controller stopping")
-	tc.client.UnsubscribeAll()
+	tc.stopOnce.Do(func() {
+		log.Print("Tenant controller stopping")
 
-	if err := tc.deleteProjectWatcher(); err != nil {
-		log.Printf("Failed to delete watcher: %v", err)
-	}
-	stopped := make(chan struct{})
-	go func() {
-		tc.grpcServer.GrpcServer.GracefulStop()
-		close(stopped)
-	}()
+		if tc.cancel != nil {
+			tc.cancel()
+		}
 
-	dur := 5 * time.Second
-	t := time.NewTimer(dur)
-	select {
-	case <-t.C:
-		log.Printf("gRPC server did not stop in %v, stopping forcefully", dur)
-		tc.grpcServer.GrpcServer.Stop()
-	case <-stopped:
-		t.Stop()
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := tc.server.Shutdown(ctx); err != nil {
-		log.Printf("Prometheus server shutdown error: %v", err)
-	}
-
-	close(tc.ComSig)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := tc.server.Shutdown(ctx); err != nil {
+			log.Printf("Prometheus server shutdown error: %v", err)
+		}
+	})
 }
 
 func (a Action) String() string {
-	return [...]string{"InitializeTenant", "CleanupTenant"}[a]
-}
-
-// Callback for project watcher deletion is safeguard for unintended project watcher deletion eg. during tenant controller update.
-func (tc *TenantController) projectWatcherDeleteHandler(_ *nexus.ProjectwatcherProjectWatcher) {
-	err := tc.addProjectWatcher()
-	if err != nil {
-		log.Print(err)
+	switch a {
+	case InitializeTenant:
+		return "InitializeTenant"
+	case CleanupTenant:
+		return "CleanupTenant"
+	default:
+		return fmt.Sprintf("Action(%d)", int(a))
 	}
 }
 
-func (tc *TenantController) addProjectWatcher() error {
-	ctx, cancel := context.WithTimeout(context.Background(), tc.watcherTimeout)
-	defer cancel()
+// eventHandler implements tenancy.Handler and routes project events to the job
+// channel. It only handles project events — org events are silently ignored.
+type eventHandler struct {
+	comSig     chan CommChannel
+	ctx        context.Context
+	grpcServer *projects.Server
+}
 
-	_, err := tc.client.TenancyMultiTenancy().Config().AddProjectWatchers(ctx, &projectwatcherv1.ProjectWatcher{ObjectMeta: metav1.ObjectMeta{
-		Name: utility.AppName,
-	}})
+func (h *eventHandler) HandleEvent(_ context.Context, event tenancy.Event) error {
+	if event.ResourceType != tenancy.ResourceTypeProject {
+		return nil
+	}
 
-	if nexus.IsAlreadyExists(err) {
-		log.Print("Project watcher already exists")
-	} else if err != nil {
-		return err
+	projectID := event.ResourceID.String()
+	projectName := event.ResourceName
+	orgName := ""
+	if event.OrgName != nil {
+		orgName = *event.OrgName
+	}
+
+	var action Action
+	switch event.EventType {
+	case tenancy.EventTypeCreated:
+		action = InitializeTenant
+	case tenancy.EventTypeDeleted:
+		action = CleanupTenant
+	default:
+		log.Printf("ignoring unrecognised event type %q for project %q", event.EventType, projectID)
+		return nil
+	}
+
+	log.Printf("Project %q %s", projectID, event.EventType)
+
+	pd := projects.ProjectData{
+		ProjectName: projectName,
+		OrgID:       orgName,
+	}
+	if action == InitializeTenant {
+		pd.Status = projects.ProjectCreated
+	} else {
+		pd.Status = projects.ProjectDeleted
+	}
+	h.grpcServer.Mu.Lock()
+	h.grpcServer.Projects[projectID] = pd
+	h.grpcServer.Mu.Unlock()
+	h.grpcServer.BroadcastUpdate()
+
+	select {
+	case h.comSig <- CommChannel{
+		ProjectID:   projectID,
+		ProjectName: projectName,
+		OrgName:     orgName,
+		Status:      action,
+	}:
+	case <-h.ctx.Done():
+		return h.ctx.Err()
 	}
 	return nil
 }
 
-func (tc *TenantController) deleteProjectWatcher() error {
-	ctx, cancel := context.WithTimeout(context.Background(), tc.watcherTimeout)
-	defer cancel()
-
-	err := tc.client.TenancyMultiTenancy().Config().DeleteProjectWatchers(ctx, utility.AppName)
-
-	if nexus.IsChildNotFound(err) {
-		log.Print("Project watcher already deleted")
-	} else if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (tc *TenantController) addHandler(project *nexus.RuntimeprojectRuntimeProject) {
-	log.Printf("Project %q added", project.UID)
-	pd := projects.ProjectData{
-		ProjectName: project.DisplayName(),
-		OrgID:       project.GetLabels()[utility.OrgNameLabel],
-	}
-
-	if project.Spec.Deleted {
-		tc.ComSig <- CommChannel{project, CleanupTenant}
-		pd.Status = projects.ProjectDeleted
-	} else {
-		tc.ComSig <- CommChannel{project, InitializeTenant}
-		pd.Status = projects.ProjectCreated
-	}
-
-	tc.grpcServer.Mu.Lock()
-	tc.grpcServer.Projects[string(project.UID)] = pd
-	tc.grpcServer.Mu.Unlock()
-	tc.grpcServer.BroadcastUpdate()
-}
-
-func (tc *TenantController) updateHandler(_, project *nexus.RuntimeprojectRuntimeProject) {
-	log.Printf("Project %q updated", project.UID)
-	pd := projects.ProjectData{
-		ProjectName: project.DisplayName(),
-		OrgID:       project.GetLabels()[utility.OrgNameLabel],
-	}
-
-	if project.Spec.Deleted {
-		tc.ComSig <- CommChannel{project, CleanupTenant}
-		pd.Status = projects.ProjectDeleted
-	} else {
-		tc.ComSig <- CommChannel{project, InitializeTenant}
-		pd.Status = projects.ProjectCreated
-	}
-
-	tc.grpcServer.Mu.Lock()
-	tc.grpcServer.Projects[string(project.UID)] = pd
-	tc.grpcServer.Mu.Unlock()
-	tc.grpcServer.BroadcastUpdate()
-}

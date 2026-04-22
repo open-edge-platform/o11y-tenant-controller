@@ -32,7 +32,6 @@ func TestReadConfig(t *testing.T) {
 		require.Equal(t, 20*time.Second, configFile.Endpoints.Mimir.PollingRate, "Config value different from expected")
 		require.Equal(t, utility.LooseMode, configFile.Endpoints.Mimir.DeleteVerifyMode, "Config value different from expected")
 		require.Equal(t, "http://localhost:8080", configFile.Endpoints.AlertingMonitor, "Config value different from expected")
-		require.Equal(t, 10*time.Minute, configFile.Controller.CreateDeleteWatcherTimeout, "Config value different from expected")
 		require.Equal(t, "http://localhost:8080", configFile.Endpoints.Sre, "Config value different from expected")
 		require.True(t, configFile.Job.Sre.Enabled, "Config value different from expected")
 	})
@@ -45,3 +44,66 @@ func TestReadConfig(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+func TestValidate_MissingRequiredFields(t *testing.T) {
+	tests := []struct {
+		name    string
+		mutate  func(*Config)
+		wantErr string
+	}{
+		{
+			name:    "zero maxInflightRequests",
+			mutate:  func(c *Config) { c.Controller.Channel.MaxInflightRequests = 0 },
+			wantErr: "maxInflightRequests must be > 0",
+		},
+		{
+			name:    "zero deletion rate",
+			mutate:  func(c *Config) { c.Job.Manager.Deletion.Rate = 0 },
+			wantErr: "job.manager.deletion.rate must be > 0",
+		},
+		{
+			name:    "zero job timeout",
+			mutate:  func(c *Config) { c.Job.Timeout = 0 },
+			wantErr: "job.timeout must be > 0",
+		},
+		{
+			name:    "zero backoff initial",
+			mutate:  func(c *Config) { c.Job.Backoff.Initial = 0 },
+			wantErr: "job.backoff.initial must be > 0",
+		},
+		{
+			name:    "zero backoff max",
+			mutate:  func(c *Config) { c.Job.Backoff.Max = 0 },
+			wantErr: "job.backoff.max must be > 0",
+		},
+		{
+			name:    "empty alertingmonitor endpoint",
+			mutate:  func(c *Config) { c.Endpoints.AlertingMonitor = "" },
+			wantErr: "endpoints.alertingmonitor must not be empty",
+		},
+		{
+			name:    "empty loki write endpoint",
+			mutate:  func(c *Config) { c.Endpoints.Loki.Write = "" },
+			wantErr: "endpoints.loki.write must not be empty",
+		},
+		{
+			name:    "empty mimir ingester endpoint",
+			mutate:  func(c *Config) { c.Endpoints.Mimir.Ingester = "" },
+			wantErr: "endpoints.mimir.ingester must not be empty",
+		},
+	}
+
+	base, err := ReadConfig("testdata/test_config.yaml")
+	require.NoError(t, err)
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := base
+			tc.mutate(&cfg)
+			err := cfg.validate()
+			require.Error(t, err)
+			require.ErrorContains(t, err, tc.wantErr)
+		})
+	}
+}
+

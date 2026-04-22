@@ -24,8 +24,15 @@ type contextKey string
 const (
 	ContextKeyTenantID contextKey = "ContextKeyTenantID"
 	AppName            string     = "observability-tenant-controller"
-	OrgNameLabel       string     = "runtimeorgs.runtimeorg.edge-orchestrator.intel.com"
 )
+
+// httpClient is the shared HTTP client used by PostReq and GetReq.
+// It avoids using http.DefaultClient so we don't pollute global state and
+// can set a transport-level timeout as a defence-in-depth measure alongside
+// the per-request context deadlines.
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
 func SleepWithContext(ctx context.Context, duration time.Duration) error {
 	timer := time.NewTimer(duration)
@@ -53,8 +60,7 @@ func PostReq(ctx context.Context, urlRaw string, tenantID string) error {
 
 	req.Header.Set("X-Scope-OrgID", tenantID)
 
-	client := http.DefaultClient
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to reach endpoint %v: %w", urlRaw, err)
 	}
@@ -80,8 +86,7 @@ func GetReq(ctx context.Context, urlRaw string, tenantID string) ([]byte, error)
 
 	req.Header.Set("X-Scope-OrgID", tenantID)
 
-	client := http.DefaultClient
-	res, err := client.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach endpoint %v: %w", urlRaw, err)
 	}

@@ -15,7 +15,6 @@ type Config struct {
 		Channel struct {
 			MaxInflightRequests int `yaml:"maxInflightRequests"`
 		} `yaml:"channel"`
-		CreateDeleteWatcherTimeout time.Duration `yaml:"createDeleteWatcherTimeout"`
 	} `yaml:"controller"`
 	Job Job `yaml:"job"`
 }

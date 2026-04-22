@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+// SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 package main
@@ -60,7 +60,7 @@ func main() {
 	}()
 	log.Printf("gRPC server listening on port %d", grpcServer.Port)
 
-	tenantCtrl, err := controller.New(cfg.Controller.Channel.MaxInflightRequests, cfg.Controller.CreateDeleteWatcherTimeout, &grpcServer)
+	tenantCtrl, err := controller.New(cfg.Controller.Channel.MaxInflightRequests, &grpcServer)
 	if err != nil {
 		log.Panicf("Failed to create tenant controller: %v", err)
 	}
@@ -81,13 +81,30 @@ func main() {
 	if err != nil {
 		log.Panicf("Failed to create sre-exporter gRPC client: %v", err)
 	}
+	defer sreConn.Close()
 
-	err = tenantCtrl.Start()
-	// defer before checking error done on purpose - to ensure cleanup (Start may fail for reasons other than an error at addProjectWatcher).
-	defer tenantCtrl.Stop()
-	if err != nil {
+	if err := tenantCtrl.Start(&grpcServer); err != nil {
 		log.Panicf("Failed to start tenant controller: %v", err)
 	}
+	defer tenantCtrl.Stop()
+
+	// Gracefully stop the gRPC server on shutdown.
+	go func() {
+		<-ctx.Done()
+		stopped := make(chan struct{})
+		go func() {
+			grpcServer.GrpcServer.GracefulStop()
+			close(stopped)
+		}()
+		timer := time.NewTimer(5 * time.Second)
+		defer timer.Stop()
+		select {
+		case <-stopped:
+		case <-timer.C:
+			log.Print("gRPC server did not stop gracefully, forcing stop")
+			grpcServer.GrpcServer.Stop()
+		}
+	}()
 
 	ticker := time.NewTicker(cfg.Job.Manager.Deletion.Rate)
 	defer ticker.Stop()
