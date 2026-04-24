@@ -58,6 +58,8 @@ github.com/open-edge-platform/o11y-alerting-monitor v1.7.9 h1:yW8UtYdg2S8emmKDv5
 github.com/open-edge-platform/o11y-alerting-monitor v1.7.9/go.mod h1:oLSnfnker++NfCUt/nYv/b3bRa4TZTaeZQC6X760a60=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.5 h1:zuTJs6OYxBXP+Sb+i7NvO1yJ6rotIKaqPxiqtgEMNKA=
 github.com/open-edge-platform/o11y-sre-exporter v0.9.5/go.mod h1:5JjAAGS43xkRfYA09PhOljUdy7giiejtn+7bmT3yIeY=
+github.com/open-edge-platform/orch-library/go v0.6.4-0.20260420133059-5326600099ac h1:Z/+e48d8IOhk/f/TQw0BW/A+vKghRtyu3Il8CTUBsM0=
+github.com/open-edge-platform/orch-library/go v0.6.4-0.20260420133059-5326600099ac/go.mod h1:4JmwDbbry87tUoQf2VQUUe6ecZA9uOnQU0nzScBOxjU=
 github.com/open-edge-platform/orch-library/go/dazl v0.5.4 h1:Rx/bSAZiLjEEBjUiJEzBvT0fQv5huT5FQ2Ke3IMUhiE=
 github.com/open-edge-platform/orch-library/go/dazl v0.5.4/go.mod h1:UiO3TOEqEuRT81OtgPsqR9LpB1887i5nk2TelhJksMY=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
