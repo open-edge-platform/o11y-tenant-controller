@@ -36,25 +36,25 @@ func (c *Config) validate() error {
 		errs = append(errs, fmt.Errorf("controller.channel.maxInflightRequests must be > 0 (got %d)", c.Controller.Channel.MaxInflightRequests))
 	}
 	if c.Job.Manager.Deletion.Rate <= 0 {
-		errs = append(errs, fmt.Errorf("job.manager.deletion.rate must be > 0"))
+		errs = append(errs, errors.New("job.manager.deletion.rate must be > 0"))
 	}
 	if c.Job.Timeout <= 0 {
-		errs = append(errs, fmt.Errorf("job.timeout must be > 0"))
+		errs = append(errs, errors.New("job.timeout must be > 0"))
 	}
 	if c.Job.Backoff.Initial <= 0 {
-		errs = append(errs, fmt.Errorf("job.backoff.initial must be > 0"))
+		errs = append(errs, errors.New("job.backoff.initial must be > 0"))
 	}
 	if c.Job.Backoff.Max <= 0 {
-		errs = append(errs, fmt.Errorf("job.backoff.max must be > 0"))
+		errs = append(errs, errors.New("job.backoff.max must be > 0"))
 	}
 	if c.Endpoints.AlertingMonitor == "" {
-		errs = append(errs, fmt.Errorf("endpoints.alertingmonitor must not be empty"))
+		errs = append(errs, errors.New("endpoints.alertingmonitor must not be empty"))
 	}
 	if c.Endpoints.Loki.Write == "" {
-		errs = append(errs, fmt.Errorf("endpoints.loki.write must not be empty"))
+		errs = append(errs, errors.New("endpoints.loki.write must not be empty"))
 	}
 	if c.Endpoints.Mimir.Ingester == "" {
-		errs = append(errs, fmt.Errorf("endpoints.mimir.ingester must not be empty"))
+		errs = append(errs, errors.New("endpoints.mimir.ingester must not be empty"))
 	}
 
 	return errors.Join(errs...)

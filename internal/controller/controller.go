@@ -51,7 +51,7 @@ type TenantController struct {
 
 func New(buffer int, grpcServer *projects.Server) (*TenantController, error) {
 	if grpcServer == nil {
-		return nil, fmt.Errorf("grpcServer must not be nil")
+		return nil, errors.New("grpcServer must not be nil")
 	}
 
 	mux := http.NewServeMux()
@@ -77,7 +77,7 @@ func (tc *TenantController) Start(grpcServer *projects.Server) error {
 	tc.startMu.Lock()
 	if tc.started {
 		tc.startMu.Unlock()
-		return fmt.Errorf("TenantController already started")
+		return errors.New("TenantController already started")
 	}
 	tc.started = true
 	tc.startMu.Unlock()
@@ -207,4 +207,3 @@ func (h *eventHandler) HandleEvent(_ context.Context, event tenancy.Event) error
 	}
 	return nil
 }
-

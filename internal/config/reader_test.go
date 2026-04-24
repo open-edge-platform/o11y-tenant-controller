@@ -106,4 +106,3 @@ func TestValidate_MissingRequiredFields(t *testing.T) {
 		})
 	}
 }
-

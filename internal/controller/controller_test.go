@@ -208,7 +208,7 @@ func TestEventHandler_HandleEvent_NilOrgName(t *testing.T) {
 	require.Len(t, comSig, 1)
 
 	msg := <-comSig
-	require.Equal(t, "", msg.OrgName, "nil OrgName must yield empty string in CommChannel")
+	require.Empty(t, msg.OrgName, "nil OrgName must yield empty string in CommChannel")
 }
 
 func TestEventHandler_HandleEvent_MultipleProjects(t *testing.T) {

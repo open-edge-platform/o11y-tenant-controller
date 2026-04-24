@@ -32,11 +32,11 @@ type mockAMServer struct {
 	amproto.UnimplementedManagementServer
 }
 
-func (m *mockAMServer) InitializeTenant(_ context.Context, _ *amproto.TenantRequest) (*emptypb.Empty, error) {
+func (*mockAMServer) InitializeTenant(_ context.Context, _ *amproto.TenantRequest) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
-func (m *mockAMServer) CleanupTenant(_ context.Context, _ *amproto.TenantRequest) (*emptypb.Empty, error) {
+func (*mockAMServer) CleanupTenant(_ context.Context, _ *amproto.TenantRequest) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
@@ -44,11 +44,11 @@ type mockSREServer struct {
 	sreproto.UnimplementedManagementServer
 }
 
-func (m *mockSREServer) InitializeTenant(_ context.Context, _ *sreproto.TenantRequest) (*emptypb.Empty, error) {
+func (*mockSREServer) InitializeTenant(_ context.Context, _ *sreproto.TenantRequest) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
-func (m *mockSREServer) CleanupTenant(_ context.Context, _ *sreproto.TenantRequest) (*emptypb.Empty, error) {
+func (*mockSREServer) CleanupTenant(_ context.Context, _ *sreproto.TenantRequest) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, nil
 }
 
@@ -124,7 +124,9 @@ func startLokiMockServer(t *testing.T) *httptest.Server {
 		// GET – return a non-empty "processed" list so the poller exits immediately
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`[{"request_id":"abc","start_time":0,"end_time":0,"query":"{}","status":"processed","created_at":0}]`))
+		if _, err := w.Write([]byte(`[{"request_id":"abc","start_time":0,"end_time":0,"query":"{}","status":"processed","created_at":0}]`)); err != nil {
+			t.Errorf("loki write: %v", err)
+		}
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
@@ -148,7 +150,9 @@ func startMimirMockServer(t *testing.T) *httptest.Server {
 	mux.HandleFunc("/compactor/delete_tenant_status", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"tenant_id":"test","blocks_deleted":true}`))
+		if _, err := w.Write([]byte(`{"tenant_id":"test","blocks_deleted":true}`)); err != nil {
+			t.Errorf("mimir write: %v", err)
+		}
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
@@ -504,4 +508,3 @@ func TestProjectInfo_RemoveNonExistentMetadata(t *testing.T) {
 		removeProjectMetadata(info)
 	})
 }
-
