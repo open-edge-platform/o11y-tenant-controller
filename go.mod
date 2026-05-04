@@ -8,7 +8,7 @@ require (
 	github.com/onsi/gomega v1.39.1
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.9
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.5
-	github.com/open-edge-platform/orch-library/go v0.6.4-0.20260420133059-5326600099ac
+	github.com/open-edge-platform/orch-library/go v0.6.4-0.20260504141454-171fffc735ae
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.20.0
