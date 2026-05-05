@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-SHELL := bash -eu -o pipefail
+SHELL := bash --norc --noprofile -eu -o pipefail
 
 PROJECT_NAME                      := observability-tenant-controller
 
@@ -63,7 +63,8 @@ lint: lint-go lint-markdown lint-yaml lint-proto lint-json lint-shell lint-helm 
 test:
 	@# Help: Runs tests and creates a coverage report
 	@echo "---MAKEFILE TEST---"
-	$(GOCMD_TEST) test $$(go list ./... | grep -v /cmd/observability-tenant-controller) --race -coverprofile $(BUILD_DIR)/coverage.out -covermode atomic
+	@mkdir -p $(BUILD_DIR)
+	$(GOCMD_TEST) test $$(go list ./... | grep -v /cmd/observability-tenant-controller) --race -coverprofile $(BUILD_DIR)/coverage.out -covermode atomic -ldflags="-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn"
 	gocover-cobertura < $(BUILD_DIR)/coverage.out > $(BUILD_DIR)/coverage.xml
 	@echo "---END MAKEFILE TEST---"
 

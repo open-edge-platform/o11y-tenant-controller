@@ -19,7 +19,6 @@ endpoints:
 controller:
   channel:
     maxInflightRequests: 20
-  createDeleteWatcherTimeout: 10m
 
 job:
   manager:
