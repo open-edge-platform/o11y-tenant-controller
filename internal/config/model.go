@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+// SPDX-FileCopyrightText: (C) 2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 package config
@@ -15,7 +15,6 @@ type Config struct {
 		Channel struct {
 			MaxInflightRequests int `yaml:"maxInflightRequests"`
 		} `yaml:"channel"`
-		CreateDeleteWatcherTimeout time.Duration `yaml:"createDeleteWatcherTimeout"`
 	} `yaml:"controller"`
 	Job Job `yaml:"job"`
 }
