@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/google/uuid v1.6.0
 	github.com/onsi/ginkgo/v2 v2.28.3
-	github.com/onsi/gomega v1.40.0
+	github.com/onsi/gomega v1.41.0
 	github.com/open-edge-platform/o11y-alerting-monitor v1.7.10
 	github.com/open-edge-platform/o11y-sre-exporter v0.9.6
 	github.com/open-edge-platform/orch-library/go v0.6.4
